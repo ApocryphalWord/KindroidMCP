@@ -1,0 +1,24 @@
+# Source files (only compiled dist/ is needed)
+src/
+tsconfig.json
+
+# Environment and config
+.env
+.env.example
+
+# Docker and deployment
+Dockerfile
+.dockerignore
+railway.json
+
+# Documentation
+CLAUDE.md
+README.md
+
+# Git
+.git/
+.github/
+
+# Development artifacts
+*.tsbuildinfo
+.mcpbignore

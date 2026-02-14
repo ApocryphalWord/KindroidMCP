@@ -1,0 +1,79 @@
+{
+  "manifest_version": "0.3",
+  "name": "kindroid-mcp-server",
+  "display_name": "Kindroid MCP Server",
+  "version": "1.0.0",
+  "description": "Connect Claude to the Kindroid AI platform to interact with your Kindroid AI companions (Kins).",
+  "author": {
+    "name": "Apocryphus"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ApocryphalWord/KindroidMCP"
+  },
+  "homepage": "https://github.com/ApocryphalWord/KindroidMCP",
+  "support": "https://github.com/ApocryphalWord/KindroidMCP/issues",
+  "license": "MIT",
+  "server": {
+    "type": "node",
+    "entry_point": "dist/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/index.js"],
+      "env": {
+        "TRANSPORT": "stdio",
+        "KINDROID_API_KEY": "${user_config.api_key}"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "send_message",
+      "description": "Send a message to a Kindroid AI and receive its response. Optionally attach images, video, or links."
+    },
+    {
+      "name": "create_kin",
+      "description": "Create a new Kindroid AI companion (Kin). Requires a name, gender, and backstory."
+    },
+    {
+      "name": "update_kin",
+      "description": "Update a Kindroid AI companion's profile fields such as backstory, memories, directives, and avatar settings."
+    },
+    {
+      "name": "request_selfie",
+      "description": "Request a solo selfie image of a single Kindroid AI companion."
+    },
+    {
+      "name": "request_group_selfie",
+      "description": "Request a group selfie image featuring multiple Kindroid AI companions (up to 3 participants)."
+    },
+    {
+      "name": "chat_break",
+      "description": "Start a new conversation with a Kindroid AI, clearing the previous chat context."
+    },
+    {
+      "name": "check_subscription",
+      "description": "Check the current Kindroid account subscription status."
+    },
+    {
+      "name": "create_journal_entry",
+      "description": "Create a journal entry for a Kin with key phrases for contextual recall during conversation."
+    }
+  ],
+  "keywords": ["kindroid", "ai", "companion", "chat", "mcp"],
+  "user_config": {
+    "api_key": {
+      "type": "string",
+      "title": "Kindroid API Key",
+      "description": "Your API key from the Kindroid platform (find it at kindroid.ai under Settings > API)",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  }
+}

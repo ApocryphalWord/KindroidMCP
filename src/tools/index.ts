@@ -1,0 +1,24 @@
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { KindroidClient } from "../kindroid-client.js";
+import { register as registerSendMessage } from "./send-message.js";
+import { register as registerCreateKin } from "./create-kin.js";
+import { register as registerUpdateKin } from "./update-kin.js";
+import { register as registerChatBreak } from "./chat-break.js";
+import { register as registerRequestSelfie } from "./request-selfie.js";
+import { register as registerRequestGroupSelfie } from "./request-group-selfie.js";
+import { register as registerCheckSubscription } from "./check-subscription.js";
+import { register as registerCreateJournalEntry } from "./create-journal-entry.js";
+
+export function registerTools(
+  server: McpServer,
+  client: KindroidClient,
+): void {
+  registerSendMessage(server, client);
+  registerCreateKin(server, client);
+  registerUpdateKin(server, client);
+  registerChatBreak(server, client);
+  registerRequestSelfie(server, client);
+  registerRequestGroupSelfie(server, client);
+  registerCheckSubscription(server, client);
+  registerCreateJournalEntry(server, client);
+}
