@@ -6,14 +6,44 @@ Supports two modes:
 - **Local (stdio)** — runs as a subprocess of Claude Desktop/CLI
 - **Remote (HTTP)** — deploy to Railway (or any host) and connect from Claude on any device
 
-## Quick Start (Local)
+## Prerequisites
+
+- **Node.js 18+** and **npm** — [download here](https://nodejs.org/)
+- **Git** — to clone the repository
+- **Kindroid API key** — find it in the Kindroid app under **Settings > API**
+- **Kindroid AI ID** (optional) — the ID of the Kin you want as the default target. Find it in the Kindroid app on your Kin's profile page. If omitted, you'll need to pass `ai_id` with each tool call.
+
+## Local Setup
+
+### Option A: One-command install (Claude Desktop)
+
+If you have Node.js installed, this single command clones, builds, and registers the server with Claude Desktop:
 
 ```bash
+npx @anthropic-ai/mcpb install github.com/ApocryphalWord/KindroidMCP
+```
+
+You'll be prompted for your Kindroid API key during installation.
+
+> **Note:** To set a default Kin, open your Claude Desktop config file (see Option B for the path) and add `"KINDROID_AI_ID": "your_ai_id"` to the `env` block after install.
+
+### Option B: Manual install (Claude Desktop)
+
+1. Clone and build:
+
+```bash
+git clone https://github.com/ApocryphalWord/KindroidMCP.git
+cd KindroidMCP
 npm install
 npm run build
 ```
 
-Add to `~/.claude/settings.json`:
+2. Open your Claude Desktop config file:
+
+   - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+   Add the following to the `mcpServers` object (create the file if it doesn't exist):
 
 ```json
 {
@@ -30,6 +60,36 @@ Add to `~/.claude/settings.json`:
   }
 }
 ```
+
+   Replace `/absolute/path/to/KindroidMCP` with the actual path where you cloned the repo. `KINDROID_AI_ID` is optional — remove it if you don't need a default Kin.
+
+   If the file already exists with other MCP servers, add the `kindroid` entry inside the existing `mcpServers` object rather than replacing the whole file.
+
+3. Restart Claude Desktop. The Kindroid tools should appear in the tools menu (hammer icon).
+
+### Option C: Claude Code CLI
+
+1. Clone and build (same as Option B, step 1).
+
+2. Add the server to `~/.claude/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "kindroid": {
+      "command": "node",
+      "args": ["/absolute/path/to/KindroidMCP/dist/index.js"],
+      "env": {
+        "TRANSPORT": "stdio",
+        "KINDROID_API_KEY": "your_api_key_here",
+        "KINDROID_AI_ID": "your_default_ai_id_here"
+      }
+    }
+  }
+}
+```
+
+3. Restart Claude Code. The server connects automatically.
 
 ## Deploy to Railway (Remote Access)
 
@@ -48,6 +108,8 @@ This lets you use the server from Claude on your phone, web, or any device.
 | `OAUTH_CLIENT_ID` | Yes | OAuth client ID (choose any value you like) |
 | `OAUTH_CLIENT_SECRET` | Yes | OAuth client secret (choose any value you like) |
 
+> **Note:** Do not set `PORT` — Railway assigns it automatically.
+
 Railway auto-detects the Dockerfile and assigns a public URL.
 
 ### 2. Connect Claude to your deployed server
@@ -64,6 +126,8 @@ Under **Advanced Settings**, enter:
 - **Token URL:** `https://your-app.up.railway.app/oauth/token`
 
 Click **Add**, then **Connect**. Claude will authenticate automatically using the client credentials — no browser interaction required.
+
+To verify everything works, try asking Claude: *"Check my Kindroid subscription status."*
 
 ## Security
 
