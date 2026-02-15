@@ -11,7 +11,6 @@ Supports two modes:
 - **Node.js 18+** and **npm** — [download here](https://nodejs.org/)
 - **Git** — to clone the repository
 - **Kindroid API key** — find it in the Kindroid app under **Settings > API**
-- **Kindroid AI ID** (optional) — the ID of the Kin you want as the default target. Find it in the Kindroid app on your Kin's profile page. If omitted, you'll need to pass `ai_id` with each tool call.
 
 ## Local Setup
 
@@ -24,8 +23,6 @@ npx @anthropic-ai/mcpb install github.com/ApocryphalWord/KindroidMCP
 ```
 
 You'll be prompted for your Kindroid API key during installation.
-
-> **Note:** To set a default Kin, open your Claude Desktop config file (see Option B for the path) and add `"KINDROID_AI_ID": "your_ai_id"` to the `env` block after install.
 
 ### Option B: Manual install (Claude Desktop)
 
@@ -53,15 +50,14 @@ npm run build
       "args": ["/absolute/path/to/KindroidMCP/dist/index.js"],
       "env": {
         "TRANSPORT": "stdio",
-        "KINDROID_API_KEY": "your_api_key_here",
-        "KINDROID_AI_ID": "your_default_ai_id_here"
+        "KINDROID_API_KEY": "your_api_key_here"
       }
     }
   }
 }
 ```
 
-   Replace `/absolute/path/to/KindroidMCP` with the actual path where you cloned the repo. `KINDROID_AI_ID` is optional — remove it if you don't need a default Kin.
+   Replace `/absolute/path/to/KindroidMCP` with the actual path where you cloned the repo.
 
    If the file already exists with other MCP servers, add the `kindroid` entry inside the existing `mcpServers` object rather than replacing the whole file.
 
@@ -81,8 +77,7 @@ npm run build
       "args": ["/absolute/path/to/KindroidMCP/dist/index.js"],
       "env": {
         "TRANSPORT": "stdio",
-        "KINDROID_API_KEY": "your_api_key_here",
-        "KINDROID_AI_ID": "your_default_ai_id_here"
+        "KINDROID_API_KEY": "your_api_key_here"
       }
     }
   }
@@ -103,8 +98,7 @@ This lets you use the server from Claude on your phone, web, or any device.
 
 | Variable | Required | Description |
 |---|---|---|
-| `KINDROID_API_KEY` | Yes | Your Kindroid API key (from Settings > General) |
-| `KINDROID_AI_ID` | No | Default AI ID to use |
+| `KINDROID_API_KEY` | Yes | Your Kindroid API key (from Settings > API) |
 | `OAUTH_CLIENT_ID` | Yes | OAuth client ID (choose any value you like) |
 | `OAUTH_CLIENT_SECRET` | Yes | OAuth client secret (choose any value you like) |
 
@@ -149,7 +143,7 @@ Send a message to a Kindroid AI and receive its response. Supports attaching ima
 
 **Parameters:**
 - `message` (required) — The message to send
-- `ai_id` (optional) — Target AI ID (falls back to `KINDROID_AI_ID` env var)
+- `ai_id` (required) — The ID of the target Kin
 - `image_urls` (optional) — Array of image URLs to attach
 - `image_description` (optional) — Description of attached images
 - `video_url` (optional) — Video URL to attach
@@ -180,7 +174,7 @@ Create a new Kindroid AI companion. Returns the new Kin's `ai_id`.
 Update a Kin's profile fields. Only provided fields are changed.
 
 **Parameters:**
-- `ai_id` (optional) — Target AI ID (falls back to `KINDROID_AI_ID` env var)
+- `ai_id` (required) — The ID of the target Kin
 - `ai_name` (optional) — The Kin's display name (max 20 characters)
 - `ai_gender` (optional) — The Kin's gender: `Male` or `Female`
 - `ai_backstory` (optional) — Personality, history, and character description
@@ -207,7 +201,7 @@ Update a Kin's profile fields. Only provided fields are changed.
 Request a solo selfie image of a Kin. The request is queued and processed asynchronously.
 
 **Parameters:**
-- `ai_id` (optional) — Target AI ID (falls back to `KINDROID_AI_ID` env var)
+- `ai_id` (required) — The ID of the target Kin
 - `prompt` (required) — Image generation prompt describing the desired scene
 - `aspect` (optional) — Aspect ratio: `square` (default), `portrait`, or `landscape`
 - `uses_nsfw` (optional) — Allow NSFW content (default: false)
@@ -231,7 +225,7 @@ Request a group selfie with multiple Kins (up to 3 participants). Include `"user
 Clear the current conversation and start fresh.
 
 **Parameters:**
-- `ai_id` (optional) — Target AI ID (falls back to `KINDROID_AI_ID` env var)
+- `ai_id` (required) — The ID of the target Kin
 - `greeting` (optional) — Custom greeting for the AI to open with
 
 ### `check_subscription`
@@ -243,7 +237,7 @@ Check the Kindroid account's subscription status (base subscription and add-on t
 Create a journal entry for a Kin — a recallable piece of contextual lore (20–500 characters) that is surfaced during conversation when triggered by associated key phrases.
 
 **Parameters:**
-- `ai_id` (optional) — Target AI ID (falls back to `KINDROID_AI_ID` env var)
+- `ai_id` (required) — The ID of the target Kin
 - `entry` (required) — Journal entry text (20–500 characters)
 - `keyphrases` (required) — Array of key phrases (each at least 3 characters) that trigger recall of this entry
 
@@ -252,7 +246,6 @@ Create a journal entry for a Kin — a recallable piece of contextual lore (20�
 | Variable | Required | Description |
 |---|---|---|
 | `KINDROID_API_KEY` | Yes | Your Kindroid API key |
-| `KINDROID_AI_ID` | No | Default AI ID when `ai_id` is omitted from tool calls |
 | `OAUTH_CLIENT_ID` | No (local) / Yes (remote) | OAuth client ID for authentication |
 | `OAUTH_CLIENT_SECRET` | No (local) / Yes (remote) | OAuth client secret (must be set together with `OAUTH_CLIENT_ID`) |
 | `PORT` | No | HTTP listen port (default: 3000, set automatically by Railway) |

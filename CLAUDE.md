@@ -32,7 +32,7 @@ Output compiles to `dist/`. Docker + Railway deployment supported via `Dockerfil
 - **TypeScript strict mode** enabled (`tsconfig.json`). Target ES2022, module Node16.
 - **Three runtime dependencies**: `@modelcontextprotocol/sdk`, `express`, `zod`.
 - **No test framework or linter** currently configured.
-- **Environment variables**: `KINDROID_API_KEY` (required), `KINDROID_AI_ID` (optional default AI), `OAUTH_CLIENT_ID` + `OAUTH_CLIENT_SECRET` (required for remote), `PORT` (default 3000), `TRANSPORT` (set to "stdio" for local mode). See `.env.example`.
+- **Environment variables**: `KINDROID_API_KEY` (required), `OAUTH_CLIENT_ID` + `OAUTH_CLIENT_SECRET` (required for remote), `PORT` (default 3000), `TRANSPORT` (set to "stdio" for local mode). See `.env.example`.
 - **OAuth tokens are in-memory only** — they reset on server restart.
 - Tools are registered in `src/tools/index.ts` using Zod for parameter validation.
 - API calls go through `src/kindroid-client.ts` with Bearer token auth.
