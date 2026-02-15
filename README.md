@@ -6,14 +6,41 @@ Supports two modes:
 - **Local (stdio)** — runs as a subprocess of Claude Desktop/CLI
 - **Remote (HTTP)** — deploy to Railway (or any host) and connect from Claude on any device
 
-## Quick Start (Local)
+## Prerequisites
+
+- **Node.js 18+** and **npm** — [download here](https://nodejs.org/)
+- **Git** — to clone the repository
+- **Kindroid API key** — find it in the Kindroid app under **Settings > API**
+
+## Local Setup
+
+### Option A: One-command install (Claude Desktop)
+
+If you have Node.js installed, this single command clones, builds, and registers the server with Claude Desktop:
 
 ```bash
+npx @anthropic-ai/mcpb install github.com/ApocryphalWord/KindroidMCP
+```
+
+You'll be prompted for your Kindroid API key during installation.
+
+### Option B: Manual install (Claude Desktop)
+
+1. Clone and build:
+
+```bash
+git clone https://github.com/ApocryphalWord/KindroidMCP.git
+cd KindroidMCP
 npm install
 npm run build
 ```
 
-Add to `~/.claude/settings.json`:
+2. Open your Claude Desktop config file:
+
+   - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+   Add the following to the `mcpServers` object (create the file if it doesn't exist):
 
 ```json
 {
@@ -23,13 +50,41 @@ Add to `~/.claude/settings.json`:
       "args": ["/absolute/path/to/KindroidMCP/dist/index.js"],
       "env": {
         "TRANSPORT": "stdio",
-        "KINDROID_API_KEY": "your_api_key_here",
-        "KINDROID_AI_ID": "your_default_ai_id_here"
+        "KINDROID_API_KEY": "your_api_key_here"
       }
     }
   }
 }
 ```
+
+   Replace `/absolute/path/to/KindroidMCP` with the actual path where you cloned the repo.
+
+   If the file already exists with other MCP servers, add the `kindroid` entry inside the existing `mcpServers` object rather than replacing the whole file.
+
+3. Restart Claude Desktop. The Kindroid tools should appear in the tools menu (hammer icon).
+
+### Option C: Claude Code CLI
+
+1. Clone and build (same as Option B, step 1).
+
+2. Add the server to `~/.claude/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "kindroid": {
+      "command": "node",
+      "args": ["/absolute/path/to/KindroidMCP/dist/index.js"],
+      "env": {
+        "TRANSPORT": "stdio",
+        "KINDROID_API_KEY": "your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+3. Restart Claude Code. The server connects automatically.
 
 ## Deploy to Railway (Remote Access)
 
@@ -43,10 +98,11 @@ This lets you use the server from Claude on your phone, web, or any device.
 
 | Variable | Required | Description |
 |---|---|---|
-| `KINDROID_API_KEY` | Yes | Your Kindroid API key (from Settings > General) |
-| `KINDROID_AI_ID` | No | Default AI ID to use |
+| `KINDROID_API_KEY` | Yes | Your Kindroid API key (from Settings > API) |
 | `OAUTH_CLIENT_ID` | Yes | OAuth client ID (choose any value you like) |
 | `OAUTH_CLIENT_SECRET` | Yes | OAuth client secret (choose any value you like) |
+
+> **Note:** Do not set `PORT` — Railway assigns it automatically.
 
 Railway auto-detects the Dockerfile and assigns a public URL.
 
@@ -64,6 +120,8 @@ Under **Advanced Settings**, enter:
 - **Token URL:** `https://your-app.up.railway.app/oauth/token`
 
 Click **Add**, then **Connect**. Claude will authenticate automatically using the client credentials — no browser interaction required.
+
+To verify everything works, try asking Claude: *"Check my Kindroid subscription status."*
 
 ## Security
 
@@ -85,7 +143,7 @@ Send a message to a Kindroid AI and receive its response. Supports attaching ima
 
 **Parameters:**
 - `message` (required) — The message to send
-- `ai_id` (optional) — Target AI ID (falls back to `KINDROID_AI_ID` env var)
+- `ai_id` (required) — The ID of the target Kin
 - `image_urls` (optional) — Array of image URLs to attach
 - `image_description` (optional) — Description of attached images
 - `video_url` (optional) — Video URL to attach
@@ -116,7 +174,7 @@ Create a new Kindroid AI companion. Returns the new Kin's `ai_id`.
 Update a Kin's profile fields. Only provided fields are changed.
 
 **Parameters:**
-- `ai_id` (optional) — Target AI ID (falls back to `KINDROID_AI_ID` env var)
+- `ai_id` (required) — The ID of the target Kin
 - `ai_name` (optional) — The Kin's display name (max 20 characters)
 - `ai_gender` (optional) — The Kin's gender: `Male` or `Female`
 - `ai_backstory` (optional) — Personality, history, and character description
@@ -143,7 +201,7 @@ Update a Kin's profile fields. Only provided fields are changed.
 Request a solo selfie image of a Kin. The request is queued and processed asynchronously.
 
 **Parameters:**
-- `ai_id` (optional) — Target AI ID (falls back to `KINDROID_AI_ID` env var)
+- `ai_id` (required) — The ID of the target Kin
 - `prompt` (required) — Image generation prompt describing the desired scene
 - `aspect` (optional) — Aspect ratio: `square` (default), `portrait`, or `landscape`
 - `uses_nsfw` (optional) — Allow NSFW content (default: false)
@@ -167,7 +225,7 @@ Request a group selfie with multiple Kins (up to 3 participants). Include `"user
 Clear the current conversation and start fresh.
 
 **Parameters:**
-- `ai_id` (optional) — Target AI ID (falls back to `KINDROID_AI_ID` env var)
+- `ai_id` (required) — The ID of the target Kin
 - `greeting` (optional) — Custom greeting for the AI to open with
 
 ### `check_subscription`
@@ -179,7 +237,7 @@ Check the Kindroid account's subscription status (base subscription and add-on t
 Create a journal entry for a Kin — a recallable piece of contextual lore (20–500 characters) that is surfaced during conversation when triggered by associated key phrases.
 
 **Parameters:**
-- `ai_id` (optional) — Target AI ID (falls back to `KINDROID_AI_ID` env var)
+- `ai_id` (required) — The ID of the target Kin
 - `entry` (required) — Journal entry text (20–500 characters)
 - `keyphrases` (required) — Array of key phrases (each at least 3 characters) that trigger recall of this entry
 
@@ -188,7 +246,6 @@ Create a journal entry for a Kin — a recallable piece of contextual lore (20�
 | Variable | Required | Description |
 |---|---|---|
 | `KINDROID_API_KEY` | Yes | Your Kindroid API key |
-| `KINDROID_AI_ID` | No | Default AI ID when `ai_id` is omitted from tool calls |
 | `OAUTH_CLIENT_ID` | No (local) / Yes (remote) | OAuth client ID for authentication |
 | `OAUTH_CLIENT_SECRET` | No (local) / Yes (remote) | OAuth client secret (must be set together with `OAUTH_CLIENT_ID`) |
 | `PORT` | No | HTTP listen port (default: 3000, set automatically by Railway) |
