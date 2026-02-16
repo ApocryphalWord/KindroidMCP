@@ -26,6 +26,7 @@ type ResponseFormat = "json" | "text" | "void";
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 type RequestBody = {};
 const DEFAULT_TIMEOUT_MS = 30_000;
+const SEND_MESSAGE_TIMEOUT_MS = 300_000;
 const MAX_RETRIES = 2;
 const BASE_DELAY_MS = 1000;
 
@@ -208,21 +209,25 @@ export class KindroidClient {
     endpoint: string,
     body: RequestBody,
     format: "json",
+    timeoutMs?: number,
   ): Promise<T>;
   private async request(
     endpoint: string,
     body: RequestBody,
     format: "text",
+    timeoutMs?: number,
   ): Promise<string>;
   private async request(
     endpoint: string,
     body: RequestBody,
     format: "void",
+    timeoutMs?: number,
   ): Promise<void>;
   private async request<T>(
     endpoint: string,
     body: RequestBody,
     format: ResponseFormat,
+    timeoutMs: number = DEFAULT_TIMEOUT_MS,
   ): Promise<T | string | void> {
     const response = await fetch(`${BASE_URL}${endpoint}`, {
       method: "POST",
@@ -231,7 +236,7 @@ export class KindroidClient {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
     });
 
     if (!response.ok) {
@@ -256,27 +261,31 @@ export class KindroidClient {
     endpoint: string,
     body: RequestBody,
     format: "json",
+    timeoutMs?: number,
   ): Promise<T>;
   private async requestWithRetry(
     endpoint: string,
     body: RequestBody,
     format: "text",
+    timeoutMs?: number,
   ): Promise<string>;
   private async requestWithRetry(
     endpoint: string,
     body: RequestBody,
     format: "void",
+    timeoutMs?: number,
   ): Promise<void>;
   private async requestWithRetry<T>(
     endpoint: string,
     body: RequestBody,
     format: ResponseFormat,
+    timeoutMs?: number,
   ): Promise<T | string | void> {
     let lastError: Error | undefined;
 
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
-        return await this.request<T>(endpoint, body, format as "json");
+        return await this.request<T>(endpoint, body, format as "json", timeoutMs);
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
 
@@ -320,7 +329,7 @@ export class KindroidClient {
       }),
     };
 
-    return this.requestWithRetry("/send-message", body, "text");
+    return this.requestWithRetry("/send-message", body, "text", SEND_MESSAGE_TIMEOUT_MS);
   }
 
   async createKin(options: CreateKinOptions): Promise<string> {
