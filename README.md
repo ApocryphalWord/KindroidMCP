@@ -6,14 +6,12 @@ Supports two modes:
 - **Local (stdio)** — runs as a subprocess of Claude Desktop/CLI
 - **Remote (HTTP)** — deploy to Railway (or any host) and connect from Claude on any device
 
-## Prerequisites
+## Limitations
 
-- **Kindroid API key** — find it in the Kindroid app under **Settings > API**
-- **Claude Desktop** (for local mode) or a **Claude.ai Pro/Max/Team/Enterprise plan** (for remote mode)
+The Kindroid API is **write-only** — there are no endpoints to read back Kin profiles, conversation history, images, or other data. This means:
 
-For manual local installation only:
-- **Node.js 18+** and **npm** — [download here](https://nodejs.org/)
-- **Git** — to clone the repository
+- **You can't retrieve what you've created.** Once you create or update a Kin, there is no way to read its current state back through the API. Consider pairing this MCP with [Notion](https://www.notion.so/) or another tool to keep a local record of Kin configurations you push to Kindroid.
+- **No avatar image upload.** The API does not support uploading avatar images directly. Kins created via the API will not have an avatar picture. Set one manually in the Kindroid app before requesting selfies — selfie generation will fail for Kins without an avatar.
 
 ## Local Setup
 
