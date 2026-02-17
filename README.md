@@ -1,10 +1,12 @@
 # Kindroid MCP Server
 
-An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that lets Claude interact with the [Kindroid](https://kindroid.ai/) AI platform. Send messages to your Kins, manage conversations, and check account status — all through Claude.
+An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that lets you interact with the [Kindroid](https://kindroid.ai/) AI platform. Send messages to your Kins, manage conversations, and check account status — all from your MCP client.
+
+The setup instructions below are written for Claude, but this server works with any MCP-compatible client.
 
 Supports two modes:
-- **Local (stdio)** — runs as a subprocess of Claude Desktop/CLI
-- **Remote (HTTP)** — deploy to Railway (or any host) and connect from Claude on any device
+- **Local (stdio)** — runs as a subprocess of your MCP client (e.g., Claude Desktop, Claude Code)
+- **Remote (HTTP)** — deploy to Railway (or any host) and connect from any device
 
 ## Disclaimer
 
@@ -30,7 +32,7 @@ This is the simplest way to get started — no need to clone anything.
 4. Enter your **Kindroid API key** when prompted.
 5. The Kindroid tools should now appear in the tools menu (hammer icon).
 
-### Option B: Manual install (Claude Desktop)
+### Option B: Manual install
 
 1. Clone and build:
 
@@ -41,12 +43,11 @@ npm install
 npm run build
 ```
 
-2. Open your Claude Desktop config file:
+2. Add the server to your MCP client's config file. The JSON block is the same — only the file location differs:
 
-   - **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
-   - **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
-
-   Add the following to the `mcpServers` object (create the file if it doesn't exist):
+   - **Claude Desktop (macOS):** `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Claude Desktop (Windows):** `%APPDATA%\Claude\claude_desktop_config.json`
+   - **Claude Code:** `~/.claude/settings.json`
 
 ```json
 {
@@ -67,30 +68,7 @@ npm run build
 
    If the file already exists with other MCP servers, add the `kindroid` entry inside the existing `mcpServers` object rather than replacing the whole file.
 
-3. Restart Claude Desktop. The Kindroid tools should appear in the tools menu (hammer icon).
-
-### Option C: Claude Code CLI
-
-1. Clone and build (same as Option B, step 1).
-
-2. Add the server to `~/.claude/settings.json`:
-
-```json
-{
-  "mcpServers": {
-    "kindroid": {
-      "command": "node",
-      "args": ["/absolute/path/to/KindroidMCP/dist/index.js"],
-      "env": {
-        "TRANSPORT": "stdio",
-        "KINDROID_API_KEY": "your_api_key_here"
-      }
-    }
-  }
-}
-```
-
-3. Restart Claude Code. The server connects automatically.
+3. Restart your MCP client. The Kindroid tools should now be available.
 
 ## Deploy to Railway (Remote Access)
 
