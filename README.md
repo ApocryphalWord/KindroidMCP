@@ -19,7 +19,6 @@ The Kindroid API is **write-only** — there are no endpoints to read back Kin p
 - **You can't retrieve what you've created.** Once you create or update a Kin, there is no way to read its current state back through the API. Consider pairing this MCP with [Notion](https://www.notion.so/) or another tool to keep a local record of Kin configurations you push to Kindroid.
 - **No avatar image upload.** The API does not support uploading avatar images directly. Kins created via the API will not have an avatar picture. Set one manually in the Kindroid app before requesting selfies — selfie generation will fail for Kins without an avatar.
 - **Selfies are fire-and-forget.** Selfie and group selfie requests are queued asynchronously. The generated images are delivered in the Kindroid app — they are not returned through the API or the MCP.
-- **Usage counts against your Kindroid limits.** Messages, selfies, and other actions performed through the MCP consume the same quotas as the Kindroid app. Some features (selfies, group selfies, proactive mode) may require a paid Kindroid subscription.
 
 ## Local Setup
 
