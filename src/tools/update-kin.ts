@@ -6,6 +6,7 @@ import { wrapToolHandler } from "./tool-utils.js";
 const shape = {
   ai_id: z
     .string()
+    .min(1)
     .describe("The ID of the Kindroid AI to update."),
   ai_name: z
     .string()
@@ -52,8 +53,9 @@ const shape = {
     .describe("Avatar preset index. Use -1 for custom avatar."),
   custom_avatar_url: z
     .string()
+    .url()
     .optional()
-    .describe("URL path for a custom avatar image."),
+    .describe("URL for a custom avatar image."),
   custom_avatar_description: z
     .string()
     .optional()

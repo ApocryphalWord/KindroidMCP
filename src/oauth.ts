@@ -31,6 +31,21 @@ const authCodes = new Map<string, AuthCode>();
 const accessTokens = new Map<string, TokenRecord>();
 const refreshTokens = new Map<string, TokenRecord>();
 
+// Periodic cleanup of expired auth codes, access tokens, and refresh tokens
+// to prevent unbounded memory growth from unused/expired entries.
+setInterval(() => {
+  const now = Date.now();
+  for (const [code, entry] of authCodes) {
+    if (now > entry.expires_at) authCodes.delete(code);
+  }
+  for (const [token, record] of accessTokens) {
+    if (now > record.access_expires_at) accessTokens.delete(token);
+  }
+  for (const [token, record] of refreshTokens) {
+    if (now > record.refresh_expires_at) refreshTokens.delete(token);
+  }
+}, 5 * 60 * 1000).unref(); // every 5 minutes
+
 // --- Client registration ---
 
 export function registerClient(
@@ -81,6 +96,21 @@ function safeCompare(a: string, b: string): boolean {
   return crypto.timingSafeEqual(bufA, bufB);
 }
 
+/**
+ * Validate that a redirect URI is safe per OAuth 2.1 / MCP spec requirements.
+ * Redirect URIs MUST be either localhost URLs (any scheme) or HTTPS URLs.
+ */
+function isValidRedirectUri(uri: string): boolean {
+  try {
+    const parsed = new URL(uri);
+    const isLocalhost =
+      parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+    return isLocalhost || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 // --- Rate limiting ---
 
 interface RateLimitEntry {
@@ -88,7 +118,7 @@ interface RateLimitEntry {
   windowStart: number;
 }
 
-function createRateLimiter(
+export function createRateLimiter(
   maxRequests: number,
   windowMs: number,
 ): (req: Request, res: Response, next: NextFunction) => void {
@@ -192,6 +222,15 @@ export function createOAuthRouter(): Router {
         return;
       }
 
+      // Validate redirect_uri is localhost or HTTPS (OAuth 2.1 / MCP spec requirement)
+      if (!isValidRedirectUri(redirectUri)) {
+        res.status(400).json({
+          error: "invalid_request",
+          error_description: "redirect_uri must be a localhost URL or an HTTPS URL.",
+        });
+        return;
+      }
+
       // Validate PKCE
       if (codeChallengeMethod !== "S256" || !codeChallenge) {
         res.status(400).json({ error: "invalid_request", error_description: "PKCE S256 is required." });
@@ -220,7 +259,7 @@ export function createOAuthRouter(): Router {
   router.post(
     "/oauth/token",
     tokenRateLimit,
-    express.urlencoded({ extended: false }),
+    express.urlencoded({ extended: false, limit: "16kb" }),
     (req: Request, res: Response) => {
       const { grant_type } = req.body;
 
@@ -292,11 +331,29 @@ export function createOAuthRouter(): Router {
       }
 
       if (grant_type === "refresh_token") {
-        const { refresh_token } = req.body;
+        const { refresh_token, client_id, client_secret } = req.body;
 
         const record = refreshTokens.get(refresh_token);
         if (!record || Date.now() > record.refresh_expires_at) {
           if (record) refreshTokens.delete(refresh_token);
+          res.status(400).json({ error: "invalid_grant" });
+          return;
+        }
+
+        // Verify client credentials (OAuth 2.1 requires confidential clients to
+        // authenticate on refresh token grants)
+        const client = clients.get(client_id);
+        if (
+          !client ||
+          !client_secret ||
+          !safeCompare(client_secret, client.client_secret)
+        ) {
+          res.status(401).json({ error: "invalid_client" });
+          return;
+        }
+
+        // Ensure refresh token belongs to this client
+        if (record.client_id !== client_id) {
           res.status(400).json({ error: "invalid_grant" });
           return;
         }

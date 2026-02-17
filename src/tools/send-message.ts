@@ -6,6 +6,7 @@ import { wrapToolHandler } from "./tool-utils.js";
 const shape = {
   ai_id: z
     .string()
+    .min(1)
     .describe("The ID of the Kindroid AI to message."),
   message: z.string().describe("The message to send to the Kindroid AI."),
   image_urls: z

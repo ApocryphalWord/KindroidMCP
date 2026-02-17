@@ -23,6 +23,8 @@ src/
   oauth.ts            # OAuth 2.1 + PKCE implementation for remote mode
   tools/              # MCP tool definitions (8 tools, one per file, Zod schemas)
     index.ts          # Tool registration entry point
+    tool-utils.ts     # Shared error-handling wrapper for tool handlers
+manifest.json         # MCP manifest for mcpb packaging
 ```
 
 Output compiles to `dist/`. Docker + Railway deployment supported via `Dockerfile` and `railway.json`.

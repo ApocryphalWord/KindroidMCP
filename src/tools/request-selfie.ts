@@ -6,6 +6,7 @@ import { wrapToolHandler } from "./tool-utils.js";
 const shape = {
   ai_id: z
     .string()
+    .min(1)
     .describe("The AI ID of the Kin to generate a selfie for."),
   prompt: z
     .string()
