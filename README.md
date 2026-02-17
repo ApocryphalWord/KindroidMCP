@@ -8,21 +8,28 @@ Supports two modes:
 
 ## Prerequisites
 
+- **Kindroid API key** — find it in the Kindroid app under **Settings > API**
+- **Claude Desktop** (for local mode) or a **Claude.ai Pro/Max/Team/Enterprise plan** (for remote mode)
+
+For manual local installation only:
 - **Node.js 18+** and **npm** — [download here](https://nodejs.org/)
 - **Git** — to clone the repository
-- **Kindroid API key** — find it in the Kindroid app under **Settings > API**
 
 ## Local Setup
 
-### Option A: One-command install (Claude Desktop)
+### Option A: Install from .mcpb (Claude Desktop)
 
-If you have Node.js installed, this single command clones, builds, and registers the server with Claude Desktop:
+This is the simplest way to get started. No need to install Node.js or clone anything — Claude Desktop bundles its own Node.js runtime.
 
-```bash
-npx @anthropic-ai/mcpb install github.com/ApocryphalWord/KindroidMCP
-```
+1. Go to the [Releases](https://github.com/ApocryphalWord/KindroidMCP/releases) page and download the latest `.mcpb` file.
+2. **Double-click** the downloaded `.mcpb` file. Claude Desktop will open automatically.
+3. You'll be prompted for your **Kindroid API key**. Enter it and confirm.
+4. The Kindroid tools should now appear in the tools menu (hammer icon).
 
-You'll be prompted for your Kindroid API key during installation.
+Alternatively, you can install from within Claude Desktop:
+1. Open **Claude Desktop** and go to **Settings > Extensions**.
+2. Click **Install Extension...** and select the `.mcpb` file you downloaded.
+3. Enter your Kindroid API key when prompted.
 
 ### Option B: Manual install (Claude Desktop)
 
@@ -113,31 +120,39 @@ In Claude.ai, go to **Settings > Connectors > Add custom connector**:
 - **Name:** Kindroid (or whatever you like)
 - **Remote MCP server URL:** `https://your-app.up.railway.app/mcp`
 
-Under **Advanced Settings**, enter:
+Expand **Advanced Settings** and enter:
 - **Client ID:** your `OAUTH_CLIENT_ID` value
 - **Client Secret:** your `OAUTH_CLIENT_SECRET` value
-- **Authorization URL:** `https://your-app.up.railway.app/oauth/authorize`
-- **Token URL:** `https://your-app.up.railway.app/oauth/token`
 
-Click **Add**, then **Connect**. Claude will authenticate automatically using the client credentials — no browser interaction required.
+Click **Add**, then **Connect**. Claude discovers the authorization and token endpoints automatically via the server's well-known metadata. Authentication is handled using OAuth 2.1 with PKCE — no browser interaction required.
 
 To verify everything works, try asking Claude: *"Check my Kindroid subscription status."*
 
 ## Security
 
+> **Never share your Kindroid API key.** Anyone with your API key has full access to your Kindroid account — they can read and send messages, create and modify Kins, and access your data. Sharing your key could result in data loss or unauthorized use of your account.
+
 ### Local mode (stdio)
-The server runs as a local subprocess. No ports are opened. Only the Claude instance that spawns the process can use it.
+The server runs as a local subprocess. No ports are opened and no network connections are made beyond the Kindroid API itself. Only the Claude instance that spawns the process can use it. Your API key is stored in your local config file and never leaves your machine.
 
 ### Remote mode (HTTP + OAuth 2.1)
-- **OAuth 2.1 with PKCE**: The server implements a full OAuth 2.1 authorization code flow with S256 PKCE, which is what Claude.ai requires for custom connectors.
-- **Client credentials**: Authentication is handled via `OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET` configured on both the server and in Claude.ai's connector settings. The server auto-approves authorization for registered clients and verifies the client secret at token exchange — no browser interaction required. Client credentials are also required for refresh token grants per OAuth 2.1.
-- **Token-based access**: After authorization, Claude receives short-lived access tokens (1h) with refresh tokens (30d). All requests to `/mcp` require a valid Bearer token.
-- **Redirect URI validation**: The authorization endpoint only accepts localhost or HTTPS redirect URIs per the MCP specification.
-- **Rate limiting**: Auth endpoints (10 req/min/IP), token endpoints (20 req/min/IP), and MCP endpoints (60 req/min/IP) are all rate-limited.
-- **Security headers**: All responses include `X-Content-Type-Options`, `X-Frame-Options`, `Strict-Transport-Security`, `Content-Security-Policy`, and `Referrer-Policy` headers.
-- **Input validation**: All tool parameters are validated at runtime with Zod schemas, including URL format validation and string length constraints.
-- **HTTPS**: Railway provides TLS by default — all traffic is encrypted in transit.
-- **No persistent state**: OAuth state (clients, tokens) is stored in-memory with periodic cleanup. If the server restarts, Claude automatically re-authenticates.
+
+Deploying in remote mode opens an internet-accessible service that proxies requests to the Kindroid API using your API key. While the server is secured with industry-standard protections, you should understand what this means:
+
+- **Your API key lives on the server.** It is stored as an environment variable on your hosting platform (e.g., Railway). It is never exposed to clients, but anyone who gains access to your server environment can read it.
+- **All authenticated clients share one API key.** The server uses your single Kindroid API key for all requests. There is no per-user scoping — any client that completes the OAuth flow has the same access.
+
+The following security measures are in place:
+
+- **OAuth 2.1 with PKCE:** The server implements a full OAuth 2.1 authorization code flow with S256 PKCE, which is what Claude.ai requires for custom connectors. Claude discovers the authorization and token endpoints automatically via standard metadata endpoints ([RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728) and [RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414)).
+- **Client credentials:** Authentication requires the `OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET` configured on both the server and in Claude.ai's connector settings. The server verifies the client secret at token exchange using timing-safe comparison.
+- **Token-based access:** After authorization, Claude receives short-lived access tokens (1h) with refresh tokens (30d). All requests to `/mcp` require a valid Bearer token. Old tokens are revoked when refreshed.
+- **Redirect URI validation:** The authorization endpoint only accepts localhost or HTTPS redirect URIs.
+- **Rate limiting:** Auth endpoints (10 req/min/IP), token endpoints (20 req/min/IP), and MCP endpoints (60 req/min/IP) are all rate-limited.
+- **Security headers:** All responses include `X-Content-Type-Options`, `X-Frame-Options`, `Strict-Transport-Security`, `Content-Security-Policy`, and `Referrer-Policy` headers.
+- **Input validation:** All tool parameters are validated at runtime with Zod schemas, including URL format validation and string length constraints.
+- **HTTPS:** Railway provides TLS by default — all traffic is encrypted in transit.
+- **No persistent state:** OAuth state (clients, tokens) is stored in-memory with periodic cleanup. If the server restarts, Claude automatically re-authenticates.
 
 ## Tools
 
@@ -255,9 +270,6 @@ Create a journal entry for a Kin — a recallable piece of contextual lore (20�
 | `PORT` | No | HTTP listen port (default: 3000, set automatically by Railway) |
 | `TRANSPORT` | No | Set to `stdio` for local subprocess mode. Defaults to HTTP. |
 
-## Development
+## License
 
-```bash
-npm install
-npm run dev    # Watch mode — recompiles on changes
-```
+This project is licensed under the [MIT License](LICENSE).
