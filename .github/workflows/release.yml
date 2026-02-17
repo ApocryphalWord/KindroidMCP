@@ -1,0 +1,68 @@
+name: Release mcpb
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: Validate mcpb manifest
+        run: npx @anthropic-ai/mcpb validate .
+
+      - name: Prune dev dependencies
+        run: npm prune --omit=dev
+
+      - name: Pack mcpb
+        run: npx --yes @anthropic-ai/mcpb pack .
+
+      - name: Determine version tag
+        id: version
+        run: |
+          VERSION=$(node -p "require('./manifest.json').version")
+          echo "version=v${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Building release v${VERSION}"
+
+      - name: Find mcpb file
+        id: mcpb
+        run: |
+          MCPB_FILE=$(ls *.mcpb 2>/dev/null | head -1)
+          if [ -z "$MCPB_FILE" ]; then
+            echo "No .mcpb file found"
+            exit 1
+          fi
+          echo "file=${MCPB_FILE}" >> "$GITHUB_OUTPUT"
+          echo "Found: ${MCPB_FILE}"
+
+      - name: Upload mcpb as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcpb-package
+          path: ${{ steps.mcpb.outputs.file }}
+
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          body: |
+            Automated release of Kindroid MCP Server ${{ steps.version.outputs.version }}.
+
+            Install with mcpb or configure manually — see [README](https://github.com/${{ github.repository }}#readme).
+          files: ${{ steps.mcpb.outputs.file }}
+          make_latest: true
