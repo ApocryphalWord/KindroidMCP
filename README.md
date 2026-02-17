@@ -14,9 +14,7 @@ This is an **unofficial, community-built project** by [Apocryphus](https://githu
 
 ## Limitations
 
-The Kindroid API is **write-only** — there are no endpoints to read back Kin profiles, conversation history, images, or other data. This means:
-
-- **You can't retrieve what you've created.** Once you create or update a Kin, there is no way to read its current state back through the API. Consider pairing this MCP with [Notion](https://www.notion.so/) or another tool to keep a local record of Kin configurations you push to Kindroid.
+- **The API is write-only.** There are no endpoints to read back Kin profiles, conversation history, or other account data. Once you create or update a Kin, there is no way to read its current state back through the API. Consider pairing this MCP with [Notion](https://www.notion.so/) or another tool to keep a local record of Kin configurations you push to Kindroid.
 - **No avatar image upload.** The API does not support uploading avatar images directly. Kins created via the API will not have an avatar picture. Set one manually in the Kindroid app before requesting selfies — selfie generation will fail for Kins without an avatar.
 - **Selfies are fire-and-forget.** Selfie and group selfie requests are queued asynchronously. The generated images are delivered in the Kindroid app — they are not returned through the API or the MCP.
 
@@ -24,17 +22,13 @@ The Kindroid API is **write-only** — there are no endpoints to read back Kin p
 
 ### Option A: Install from .mcpb (Claude Desktop)
 
-This is the simplest way to get started. No need to install Node.js or clone anything — Claude Desktop bundles its own Node.js runtime.
+This is the simplest way to get started — no need to clone anything.
 
 1. Go to the [Releases](https://github.com/ApocryphalWord/KindroidMCP/releases) page and download the latest `.mcpb` file.
-2. **Double-click** the downloaded `.mcpb` file. Claude Desktop will open automatically.
-3. You'll be prompted for your **Kindroid API key**. Enter it and confirm.
-4. The Kindroid tools should now appear in the tools menu (hammer icon).
-
-Alternatively, you can install from within Claude Desktop:
-1. Open **Claude Desktop** and go to **Settings > Extensions**.
-2. Click **Install Extension...** and select the `.mcpb` file you downloaded.
-3. Enter your Kindroid API key when prompted.
+2. Open **Claude Desktop** and go to **Settings > Extensions**.
+3. Click **Install Extension...** and select the `.mcpb` file you downloaded.
+4. Enter your **Kindroid API key** when prompted.
+5. The Kindroid tools should now appear in the tools menu (hammer icon).
 
 ### Option B: Manual install (Claude Desktop)
 
@@ -129,13 +123,13 @@ Expand **Advanced Settings** and enter:
 - **Client ID:** your `OAUTH_CLIENT_ID` value
 - **Client Secret:** your `OAUTH_CLIENT_SECRET` value
 
-Click **Add**, then **Connect**. Claude discovers the authorization and token endpoints automatically via the server's well-known metadata. Authentication is handled using OAuth 2.1 with PKCE — no browser interaction required.
+Click **Add**, then **Connect**.
 
 To verify everything works, try asking Claude: *"Check my Kindroid subscription status."*
 
 ## Security
 
-> **Never share your Kindroid API key.** Anyone with your API key has full access to your Kindroid account — they can read and send messages, create and modify Kins, and access your data. Sharing your key could result in data loss or unauthorized use of your account.
+> **Never share your Kindroid API key.** Anyone with your API key has full access to your Kindroid account. Sharing your key could result in data loss or unauthorized use of your account.
 
 ### Local mode (stdio)
 The server runs as a local subprocess. No ports are opened and no network connections are made beyond the Kindroid API itself. Only the Claude instance that spawns the process can use it. Your API key is stored in your local config file and never leaves your machine.
@@ -149,7 +143,7 @@ Deploying in remote mode opens an internet-accessible service that proxies reque
 
 The following security measures are in place:
 
-- **OAuth 2.1 with PKCE:** The server implements a full OAuth 2.1 authorization code flow with S256 PKCE, which is what Claude.ai requires for custom connectors. Claude discovers the authorization and token endpoints automatically via standard metadata endpoints ([RFC 9728](https://datatracker.ietf.org/doc/html/rfc9728) and [RFC 8414](https://datatracker.ietf.org/doc/html/rfc8414)).
+- **OAuth 2.1 with PKCE:** The server implements a full OAuth 2.1 authorization code flow with S256 PKCE, which is what Claude.ai requires for custom connectors.
 - **Client credentials:** Authentication requires the `OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET` configured on both the server and in Claude.ai's connector settings. The server verifies the client secret at token exchange using timing-safe comparison.
 - **Token-based access:** After authorization, Claude receives short-lived access tokens (1h) with refresh tokens (30d). All requests to `/mcp` require a valid Bearer token. Old tokens are revoked when refreshed.
 - **Redirect URI validation:** The authorization endpoint only accepts localhost or HTTPS redirect URIs.
