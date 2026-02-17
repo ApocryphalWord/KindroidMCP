@@ -42,7 +42,7 @@ This lets you use the server from Claude on your phone, web, or any device.
 |---|---|---|
 | `KINDROID_API_KEY` | Yes | Your Kindroid API key (from Settings > API) |
 | `OAUTH_CLIENT_ID` | Yes | OAuth client ID (choose any value you like) |
-| `OAUTH_CLIENT_SECRET` | Yes | OAuth client secret (choose any value you like) |
+| `OAUTH_CLIENT_SECRET` | Yes | OAuth client secret (generate a strong, random password-like string) |
 
 > **Note:** Do not set `PORT` — Railway assigns it automatically.
 
@@ -61,7 +61,7 @@ Expand **Advanced Settings** and enter:
 
 Click **Add**, then **Connect**.
 
-To verify everything works, try asking Claude: *"Check my Kindroid subscription status."*
+To verify everything works, try asking Claude: *"Request a selfie of Kin `<ai_id>` in a sunny park."*
 
 ## Security
 
