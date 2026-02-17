@@ -8,7 +8,7 @@ const shape = {
     .string()
     .describe('The group selfie API version to use (e.g. "v7").'),
   ai_ids: z
-    .array(z.string())
+    .array(z.string().min(1))
     .min(1)
     .max(3)
     .describe(

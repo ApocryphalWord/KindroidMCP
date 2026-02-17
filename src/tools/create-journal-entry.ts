@@ -6,6 +6,7 @@ import { wrapToolHandler } from "./tool-utils.js";
 const shape = {
   ai_id: z
     .string()
+    .min(1)
     .describe("The ID of the Kindroid AI to create the journal entry for."),
   entry: z
     .string()

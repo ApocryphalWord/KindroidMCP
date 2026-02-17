@@ -130,10 +130,14 @@ The server runs as a local subprocess. No ports are opened. Only the Claude inst
 
 ### Remote mode (HTTP + OAuth 2.1)
 - **OAuth 2.1 with PKCE**: The server implements a full OAuth 2.1 authorization code flow with S256 PKCE, which is what Claude.ai requires for custom connectors.
-- **Client credentials**: Authentication is handled via `OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET` configured on both the server and in Claude.ai's connector settings. The server auto-approves authorization for registered clients and verifies the client secret at token exchange — no browser interaction required.
+- **Client credentials**: Authentication is handled via `OAUTH_CLIENT_ID` and `OAUTH_CLIENT_SECRET` configured on both the server and in Claude.ai's connector settings. The server auto-approves authorization for registered clients and verifies the client secret at token exchange — no browser interaction required. Client credentials are also required for refresh token grants per OAuth 2.1.
 - **Token-based access**: After authorization, Claude receives short-lived access tokens (1h) with refresh tokens (30d). All requests to `/mcp` require a valid Bearer token.
+- **Redirect URI validation**: The authorization endpoint only accepts localhost or HTTPS redirect URIs per the MCP specification.
+- **Rate limiting**: Auth endpoints (10 req/min/IP), token endpoints (20 req/min/IP), and MCP endpoints (60 req/min/IP) are all rate-limited.
+- **Security headers**: All responses include `X-Content-Type-Options`, `X-Frame-Options`, `Strict-Transport-Security`, `Content-Security-Policy`, and `Referrer-Policy` headers.
+- **Input validation**: All tool parameters are validated at runtime with Zod schemas, including URL format validation and string length constraints.
 - **HTTPS**: Railway provides TLS by default — all traffic is encrypted in transit.
-- **No persistent state**: OAuth state (clients, tokens) is stored in-memory. If the server restarts, Claude automatically re-authenticates.
+- **No persistent state**: OAuth state (clients, tokens) is stored in-memory with periodic cleanup. If the server restarts, Claude automatically re-authenticates.
 
 ## Tools
 
@@ -162,7 +166,7 @@ Create a new Kindroid AI companion. Returns the new Kin's `ai_id`.
 - `custom_greeting` (optional) — Custom greeting for new conversations
 - `ai_directive` (optional) — System instruction for the Kin's behavior
 - `ai_avatar` (optional) — Avatar preset index (-1 for custom avatar)
-- `custom_avatar_url` (optional) — URL path for a custom avatar image
+- `custom_avatar_url` (optional) — URL for a custom avatar image
 - `custom_avatar_description` (optional) — Text description for avatar generation
 - `custom_avatar_fidelity` (optional) — Avatar fidelity (0–1)
 - `custom_avatar_face_detail` (optional) — Face detail level (0–1)
@@ -188,7 +192,7 @@ Update a Kin's profile fields. Only provided fields are changed.
 - `proactive_mode` (optional) — Enable proactive mode (max 10 Kins per account)
 - `proactive_action_directive` (optional) — How the Kin should proactively message, call, or send selfies (max 300 characters)
 - `ai_avatar` (optional) — Avatar preset index (-1 for custom)
-- `custom_avatar_url` (optional) — URL path for a custom avatar image
+- `custom_avatar_url` (optional) — URL for a custom avatar image
 - `custom_avatar_description` (optional) — Text description for avatar generation
 - `custom_avatar_fidelity` (optional) — Avatar fidelity (0–1)
 - `custom_avatar_face_detail` (optional) — Face detail level (0–1)

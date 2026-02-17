@@ -114,7 +114,7 @@ async function startHttp() {
   const [
     expressModule,
     { StreamableHTTPServerTransport },
-    { createOAuthRouter, requireBearerAuth, registerClient },
+    { createOAuthRouter, requireBearerAuth, registerClient, createRateLimiter },
   ] = await Promise.all([
     import("express"),
     import("@modelcontextprotocol/sdk/server/streamableHttp.js"),
@@ -123,7 +123,12 @@ async function startHttp() {
   const express = expressModule.default;
 
   const app = express();
-  app.use(express.json());
+
+  // Trust the first proxy hop (Railway / Render / etc.) so req.ip reflects
+  // the real client IP for rate limiting and logging.
+  app.set("trust proxy", 1);
+
+  app.use(express.json({ limit: "1mb" }));
 
   // Security headers
   app.use((_req: Request, res: Response, next: NextFunction) => {
@@ -161,6 +166,10 @@ async function startHttp() {
         "The server is running without authentication.",
     );
   }
+
+  // Rate-limit MCP requests to prevent abuse (60 req/min/IP)
+  const mcpRateLimit = createRateLimiter(60, 60_000);
+  app.use("/mcp", mcpRateLimit);
 
   // MCP request handler — stateless: fresh server + transport per request
   async function handleMcpPost(req: Request, res: Response) {
