@@ -20,55 +20,13 @@ This is an **unofficial, community-built project** by [Apocryphus](https://githu
 - **No avatar image upload.** The API does not support uploading avatar images directly. Kins created via the API will not have an avatar picture. Set one manually in the Kindroid app before requesting selfies — selfie generation will fail for Kins without an avatar.
 - **Selfies are fire-and-forget.** Selfie and group selfie requests are queued asynchronously. The generated images are delivered in the Kindroid app — they are not returned through the API or the MCP.
 
-## Local Setup
-
-### Option A: Install from .mcpb (Claude Desktop)
-
-This is the simplest way to get started — no need to clone anything.
+## Local Setup (Claude Desktop)
 
 1. Go to the [Releases](https://github.com/ApocryphalWord/KindroidMCP/releases) page and download the latest `.mcpb` file.
 2. Open **Claude Desktop** and go to **Settings > Extensions**.
 3. Click **Install Extension...** and select the `.mcpb` file you downloaded.
 4. Enter your **Kindroid API key** when prompted.
 5. The Kindroid tools should now appear in the tools menu (hammer icon).
-
-### Option B: Manual install
-
-1. Clone and build:
-
-```bash
-git clone https://github.com/ApocryphalWord/KindroidMCP.git
-cd KindroidMCP
-npm install
-npm run build
-```
-
-2. Add the server to your MCP client's config file. The JSON block is the same — only the file location differs:
-
-   - **Claude Desktop (macOS):** `~/Library/Application Support/Claude/claude_desktop_config.json`
-   - **Claude Desktop (Windows):** `%APPDATA%\Claude\claude_desktop_config.json`
-   - **Claude Code:** `~/.claude/settings.json`
-
-```json
-{
-  "mcpServers": {
-    "kindroid": {
-      "command": "node",
-      "args": ["/absolute/path/to/KindroidMCP/dist/index.js"],
-      "env": {
-        "TRANSPORT": "stdio",
-        "KINDROID_API_KEY": "your_api_key_here"
-      }
-    }
-  }
-}
-```
-
-   Replace `/absolute/path/to/KindroidMCP` with the actual path where you cloned the repo.
-
-   If the file already exists with other MCP servers, add the `kindroid` entry inside the existing `mcpServers` object rather than replacing the whole file.
-
-3. Restart your MCP client. The Kindroid tools should now be available.
 
 ## Deploy to Railway (Remote Access)
 
