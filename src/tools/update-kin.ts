@@ -115,6 +115,18 @@ const shape = {
     .describe(
       "Instructions for how the Kin should proactively message, call, or send selfies. Max 300 characters.",
     ),
+  time_awareness: z
+    .boolean()
+    .optional()
+    .describe(
+      "Enable time awareness so the Kin knows the current time during conversations.",
+    ),
+  show_auto_selfies_in_chat: z
+    .boolean()
+    .optional()
+    .describe(
+      "Whether auto-generated selfies are shown in the chat.",
+    ),
 } as const;
 
 type Params = z.infer<z.ZodObject<typeof shape>>;
@@ -152,6 +164,8 @@ export function register(
         llm_flair: params.llm_flair,
         proactive_mode: params.proactive_mode,
         proactive_action_directive: params.proactive_action_directive,
+        time_awareness: params.time_awareness,
+        show_auto_selfies_in_chat: params.show_auto_selfies_in_chat,
       });
 
       const updated = [
@@ -180,6 +194,9 @@ export function register(
         params.proactive_mode !== undefined && "proactive mode",
         params.proactive_action_directive !== undefined &&
           "proactive action directive",
+        params.time_awareness !== undefined && "time awareness",
+        params.show_auto_selfies_in_chat !== undefined &&
+          "show auto selfies in chat",
       ].filter(Boolean);
 
       return {

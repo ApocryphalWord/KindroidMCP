@@ -97,6 +97,8 @@ export interface UpdateKinOptions {
   llm_flair?: string;
   proactive_mode?: boolean;
   proactive_action_directive?: string;
+  time_awareness?: boolean;
+  show_auto_selfies_in_chat?: boolean;
 }
 
 export interface SelfieRequestOptions {
@@ -398,6 +400,10 @@ export class KindroidClient {
       body.proactive_mode = options.proactive_mode;
     if (options.proactive_action_directive !== undefined)
       body.proactive_action_directive = options.proactive_action_directive;
+    if (options.time_awareness !== undefined)
+      body.time_awareness = options.time_awareness;
+    if (options.show_auto_selfies_in_chat !== undefined)
+      body.show_auto_selfies_in_chat = options.show_auto_selfies_in_chat;
 
     return this.requestWithRetry("/update-info", body, "void");
   }

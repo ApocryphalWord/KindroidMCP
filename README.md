@@ -141,6 +141,8 @@ Update a Kin's profile fields. Only provided fields are changed.
 - `llm_flair` (optional) — Style preset: `companion`, `roleplay`, `narrative`, `classic`, `minimal`
 - `proactive_mode` (optional) — Enable proactive mode (max 10 Kins per account)
 - `proactive_action_directive` (optional) — How the Kin should proactively message, call, or send selfies (max 300 characters)
+- `time_awareness` (optional) — Enable time awareness so the Kin knows the current time
+- `show_auto_selfies_in_chat` (optional) — Whether auto-generated selfies appear in the chat
 - `ai_avatar` (optional) — Avatar preset index (-1 for custom)
 - `custom_avatar_url` (optional) — URL for a custom avatar image
 - `custom_avatar_description` (optional) — Text description for avatar generation
