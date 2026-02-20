@@ -389,6 +389,17 @@ export function createOAuthRouter(): Router {
     },
   );
 
+  // Compatibility aliases — some MCP clients (e.g. Claude Desktop) hit
+  // /authorize and /token directly, ignoring the well-known metadata that
+  // advertises /oauth/authorize and /oauth/token.
+  router.get("/authorize", (req: Request, res: Response) => {
+    const qs = new URLSearchParams(req.query as Record<string, string>);
+    res.redirect(307, `/oauth/authorize?${qs.toString()}`);
+  });
+  router.post("/token", (req: Request, res: Response) => {
+    res.redirect(307, "/oauth/token");
+  });
+
   return router;
 }
 

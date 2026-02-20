@@ -171,7 +171,11 @@ async function startHttp() {
   const mcpRateLimit = createRateLimiter(60, 60_000);
   app.use("/mcp", mcpRateLimit);
 
-  // MCP request handler — stateless: fresh server + transport per request
+  // Singleton MCP server — created once, reused across all requests.
+  // Only the transport is created per request (stateless mode).
+  const mcpServer = createServer();
+
+  // MCP request handler — stateless: fresh transport per request
   async function handleMcpPost(req: Request, res: Response) {
     const body = req.body;
     const methods = Array.isArray(body)
@@ -182,13 +186,12 @@ async function startHttp() {
       `[MCP] Headers: accept=${req.headers.accept}, content-type=${req.headers["content-type"]}`,
     );
 
-    const server = createServer();
     try {
       const transport = new StreamableHTTPServerTransport({
         sessionIdGenerator: undefined, // stateless
       });
 
-      await server.connect(transport);
+      mcpServer.connect(transport);
       await transport.handleRequest(req, res, req.body);
 
       res.on("close", () => {
@@ -196,7 +199,6 @@ async function startHttp() {
           `[MCP] Response closed for method(s): ${methods}, status: ${res.statusCode}`,
         );
         transport.close();
-        server.close();
       });
     } catch (error) {
       console.error("[MCP] Error handling request:", error);
