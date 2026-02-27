@@ -23,7 +23,7 @@ This Kindroid MCP server provides AI assistant tools (such as Claude) the abilit
 * Requesting Selfies and Group Selfies.
 * Running a Chat Break on a conversation.
 * Creating Journal Entries.
-* Creating and Updating Group Chats with multiple Kins, including turn-taking and memory settings.
+* Creating and Updating Group Chats with multiple Kins, including turn-taking, memory settings, and group messaging.
 
 The power of the above is being able to do so without using the AI, and with the right setup (storing or looking up the Kindroid's AI ID from another source), run these operations in bulk. If the user has stored a collection of their Kindroid's IDs and names (in a Notion Database or somewhere else Claude can access), running any of the above is as easy as asking claude to "Turn off Time Awareness for Kin1, Kin2, and Kin3" or "Run this selfie prompt on Kin1, Kin2, and Kin3."
 
@@ -221,6 +221,37 @@ Update a group chat's settings. Only provided fields are changed.
 - `disable_ltm_recall` (optional) — Toggle long-term memory recall
 - `disable_ltm_consolidate` (optional) — Toggle long-term memory creation
 - `user_persona_id` (optional) — User persona ID to use
+
+### `send_groupchat_message`
+
+Send a user message to a group chat. Does not trigger AI responses — use `groupchat_get_turn` and `groupchat_ai_response` to get Kin replies. Supports attaching images, video, or links.
+
+**Parameters:**
+- `group_id` (required) — The ID of the group chat
+- `message` (required) — The message to send
+- `image_urls` (optional) — Array of image URLs to attach
+- `image_description` (optional) — Description of attached images
+- `video_url` (optional) — Video URL to attach
+- `video_description` (optional) — Description of attached video
+- `link_url` (optional) — Link URL to share
+- `link_description` (optional) — Description of the shared link
+
+### `groupchat_get_turn`
+
+Determine which Kin should respond next in a group chat. Returns the `ai_id` of the next speaker. Used in automatic turn-taking mode.
+
+**Parameters:**
+- `group_id` (required) — The ID of the group chat
+- `allow_user` (optional) — Whether the user can be selected as the next speaker (default: true)
+
+### `groupchat_ai_response`
+
+Request a specific Kin to respond in a group chat. Returns the Kin's response text. Can be called after `groupchat_get_turn` (auto mode) or directly (manual mode).
+
+**Parameters:**
+- `ai_id` (required) — The ID of the Kin to respond
+- `group_id` (required) — The ID of the group chat
+- `request_id` (optional) — Request ID for deduplication (auto-generated if not provided)
 
 ### `chat_break`
 

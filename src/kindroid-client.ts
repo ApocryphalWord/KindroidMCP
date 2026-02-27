@@ -155,6 +155,28 @@ export interface UpdateGroupChatOptions {
   user_persona_id?: string;
 }
 
+export interface SendGroupChatMessageOptions {
+  group_id: string;
+  message: string;
+  image_urls?: string[];
+  image_description?: string;
+  video_url?: string;
+  video_description?: string;
+  link_url?: string;
+  link_description?: string;
+}
+
+export interface GroupChatGetTurnOptions {
+  group_id: string;
+  allow_user?: boolean;
+}
+
+export interface GroupChatAiResponseOptions {
+  ai_id: string;
+  group_id: string;
+  request_id?: string;
+}
+
 export interface SubscriptionInfo {
   uid: string;
   status: string;
@@ -546,5 +568,66 @@ export class KindroidClient {
       body.user_persona_id = options.user_persona_id;
 
     return this.requestWithRetry("/groupchats-update", body, "void");
+  }
+
+  async sendGroupChatMessage(
+    options: SendGroupChatMessageOptions,
+  ): Promise<string> {
+    const body: Record<string, unknown> = {
+      group_id: options.group_id,
+      message: options.message,
+      ...(options.image_urls?.length && { image_urls: options.image_urls }),
+      ...(options.image_description && {
+        image_description: options.image_description,
+      }),
+      ...(options.video_url && { video_url: options.video_url }),
+      ...(options.video_description && {
+        video_description: options.video_description,
+      }),
+      ...(options.link_url && { link_url: options.link_url }),
+      ...(options.link_description && {
+        link_description: options.link_description,
+      }),
+    };
+
+    return this.requestWithRetry(
+      "/groupchats-user-message",
+      body,
+      "text",
+      SEND_MESSAGE_TIMEOUT_MS,
+    );
+  }
+
+  async groupChatGetTurn(
+    options: GroupChatGetTurnOptions,
+  ): Promise<string> {
+    return this.requestWithRetry(
+      "/groupchats-get-turn",
+      {
+        group_id: options.group_id,
+        allow_user: options.allow_user ?? true,
+      },
+      "text",
+    );
+  }
+
+  async groupChatAiResponse(
+    options: GroupChatAiResponseOptions,
+  ): Promise<string> {
+    const requestId =
+      options.request_id ??
+      `group-ai-${options.group_id}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+
+    return this.requestWithRetry(
+      "/groupchats-ai-response",
+      {
+        ai_id: options.ai_id,
+        group_id: options.group_id,
+        stream: false,
+        request_id: requestId,
+      },
+      "text",
+      SEND_MESSAGE_TIMEOUT_MS,
+    );
   }
 }
