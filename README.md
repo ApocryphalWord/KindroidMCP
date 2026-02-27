@@ -25,7 +25,7 @@ This Kindroid MCP server provides AI assistant tools (such as Claude) the abilit
 * Creating Journal Entries.
 * Creating and Updating Group Chats with multiple Kins, including turn-taking, memory settings, and group messaging.
 
-The power of the above is being able to do so without using the AI, and with the right setup (storing or looking up the Kindroid's AI ID from another source), run these operations in bulk. If the user has stored a collection of their Kindroid's IDs and names (in a Notion Database or somewhere else Claude can access), running any of the above is as easy as asking claude to "Turn off Time Awareness for Kin1, Kin2, and Kin3" or "Run this selfie prompt on Kin1, Kin2, and Kin3."
+The power of the above is being able to do so without using the UI, and with the right setup (storing or looking up the Kindroid's AI ID from another source), run these operations in bulk. If the user has stored a collection of their Kindroid's IDs and names (in a Notion Database or somewhere else Claude can access), running any of the above is as easy as asking claude to "Turn off Time Awareness for Kin1, Kin2, and Kin3" or "Run this selfie prompt on Kin1, Kin2, and Kin3."
 
 These capabilities can be easily leveraged via Claude Skills. Several skills making use of this MCP server are available at [ClaudeKindroidSkills](https://github.com/ApocryphalWord/KindroidClaudeSkills).
 
