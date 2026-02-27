@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "kindroid-mcp-server",
   "display_name": "Kindroid MCP Server",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Connect Claude to the Kindroid AI platform to interact with your Kindroid AI companions (Kins).",
   "author": {
     "name": "Apocryphus"
@@ -58,6 +58,26 @@
     {
       "name": "create_journal_entry",
       "description": "Create a journal entry for a Kin with key phrases for contextual recall during conversation."
+    },
+    {
+      "name": "create_groupchat",
+      "description": "Create a new group chat with multiple Kindroid AI companions."
+    },
+    {
+      "name": "update_groupchat",
+      "description": "Update a group chat's settings such as name, context, directive, and participant list."
+    },
+    {
+      "name": "send_groupchat_message",
+      "description": "Send a user message to a group chat with multiple Kindroid AI companions."
+    },
+    {
+      "name": "groupchat_get_turn",
+      "description": "Determine which Kin should respond next in a group chat."
+    },
+    {
+      "name": "groupchat_ai_response",
+      "description": "Request a specific Kin to respond in a group chat. Returns the response text."
     }
   ],
   "keywords": ["kindroid", "ai", "companion", "chat", "mcp"],

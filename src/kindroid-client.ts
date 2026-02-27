@@ -130,6 +130,53 @@ export interface CreateJournalEntryOptions {
   keyphrases: string[];
 }
 
+export interface CreateGroupChatOptions {
+  ai_list: string[];
+  group_name: string;
+  group_context?: string;
+  group_directive?: string;
+  use_manual_turntaking?: boolean;
+  share_short_term_memory?: boolean;
+  disable_ltm_recall?: boolean;
+  disable_ltm_consolidate?: boolean;
+  user_persona_id?: string;
+}
+
+export interface UpdateGroupChatOptions {
+  group_id: string;
+  ai_list?: string[];
+  group_name?: string;
+  group_context?: string;
+  group_directive?: string;
+  use_manual_turntaking?: boolean;
+  share_short_term_memory?: boolean;
+  disable_ltm_recall?: boolean;
+  disable_ltm_consolidate?: boolean;
+  user_persona_id?: string;
+}
+
+export interface SendGroupChatMessageOptions {
+  group_id: string;
+  message: string;
+  image_urls?: string[];
+  image_description?: string;
+  video_url?: string;
+  video_description?: string;
+  link_url?: string;
+  link_description?: string;
+}
+
+export interface GroupChatGetTurnOptions {
+  group_id: string;
+  allow_user?: boolean;
+}
+
+export interface GroupChatAiResponseOptions {
+  ai_id: string;
+  group_id: string;
+  request_id?: string;
+}
+
 export interface SubscriptionInfo {
   uid: string;
   status: string;
@@ -477,5 +524,110 @@ export class KindroidClient {
       );
     }
     return result.data;
+  }
+
+  async createGroupChat(options: CreateGroupChatOptions): Promise<string> {
+    const body: Record<string, unknown> = {
+      ai_list: options.ai_list,
+      group_name: options.group_name,
+      group_context: options.group_context ?? "",
+      group_directive: options.group_directive ?? "",
+      use_manual_turntaking: options.use_manual_turntaking ?? false,
+      share_short_term_memory: options.share_short_term_memory ?? false,
+      disable_ltm_recall: options.disable_ltm_recall ?? false,
+      disable_ltm_consolidate: options.disable_ltm_consolidate ?? false,
+    };
+
+    if (options.user_persona_id)
+      body.user_persona_id = options.user_persona_id;
+
+    return this.requestWithRetry("/groupchats-create", body, "text");
+  }
+
+  async updateGroupChat(options: UpdateGroupChatOptions): Promise<void> {
+    const body: Record<string, unknown> = {
+      group_id: options.group_id,
+    };
+
+    if (options.ai_list !== undefined) body.ai_list = options.ai_list;
+    if (options.group_name !== undefined)
+      body.group_name = options.group_name;
+    if (options.group_context !== undefined)
+      body.group_context = options.group_context;
+    if (options.group_directive !== undefined)
+      body.group_directive = options.group_directive;
+    if (options.use_manual_turntaking !== undefined)
+      body.use_manual_turntaking = options.use_manual_turntaking;
+    if (options.share_short_term_memory !== undefined)
+      body.share_short_term_memory = options.share_short_term_memory;
+    if (options.disable_ltm_recall !== undefined)
+      body.disable_ltm_recall = options.disable_ltm_recall;
+    if (options.disable_ltm_consolidate !== undefined)
+      body.disable_ltm_consolidate = options.disable_ltm_consolidate;
+    if (options.user_persona_id !== undefined)
+      body.user_persona_id = options.user_persona_id;
+
+    return this.requestWithRetry("/groupchats-update", body, "void");
+  }
+
+  async sendGroupChatMessage(
+    options: SendGroupChatMessageOptions,
+  ): Promise<string> {
+    const body: Record<string, unknown> = {
+      group_id: options.group_id,
+      message: options.message,
+      ...(options.image_urls?.length && { image_urls: options.image_urls }),
+      ...(options.image_description && {
+        image_description: options.image_description,
+      }),
+      ...(options.video_url && { video_url: options.video_url }),
+      ...(options.video_description && {
+        video_description: options.video_description,
+      }),
+      ...(options.link_url && { link_url: options.link_url }),
+      ...(options.link_description && {
+        link_description: options.link_description,
+      }),
+    };
+
+    return this.requestWithRetry(
+      "/groupchats-user-message",
+      body,
+      "text",
+      SEND_MESSAGE_TIMEOUT_MS,
+    );
+  }
+
+  async groupChatGetTurn(
+    options: GroupChatGetTurnOptions,
+  ): Promise<string> {
+    return this.requestWithRetry(
+      "/groupchats-get-turn",
+      {
+        group_id: options.group_id,
+        allow_user: options.allow_user ?? true,
+      },
+      "text",
+    );
+  }
+
+  async groupChatAiResponse(
+    options: GroupChatAiResponseOptions,
+  ): Promise<string> {
+    const requestId =
+      options.request_id ??
+      `group-ai-${options.group_id}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+
+    return this.requestWithRetry(
+      "/groupchats-ai-response",
+      {
+        ai_id: options.ai_id,
+        group_id: options.group_id,
+        stream: false,
+        request_id: requestId,
+      },
+      "text",
+      SEND_MESSAGE_TIMEOUT_MS,
+    );
   }
 }
