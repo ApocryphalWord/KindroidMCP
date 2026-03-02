@@ -13,6 +13,8 @@ import { register as registerUpdateGroupChat } from "./update-groupchat.js";
 import { register as registerSendGroupChatMessage } from "./send-groupchat-message.js";
 import { register as registerGroupChatGetTurn } from "./groupchat-get-turn.js";
 import { register as registerGroupChatAiResponse } from "./groupchat-ai-response.js";
+import { register as registerSuggestUserMessage } from "./suggest-user-message.js";
+import { register as registerSuggestUserGroupMessage } from "./suggest-user-group-message.js";
 
 export function registerTools(
   server: McpServer,
@@ -31,4 +33,6 @@ export function registerTools(
   registerSendGroupChatMessage(server, client);
   registerGroupChatGetTurn(server, client);
   registerGroupChatAiResponse(server, client);
+  registerSuggestUserMessage(server, client);
+  registerSuggestUserGroupMessage(server, client);
 }
