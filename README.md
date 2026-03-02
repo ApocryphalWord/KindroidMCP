@@ -21,7 +21,8 @@ This Kindroid MCP server provides AI assistant tools (such as Claude) the abilit
 * Creating and Updating kins, setting any values available in the UI.
   * Including setup fields like `show_auto_selfies_in_chat` and `time_awareness`
 * Requesting Selfies and Group Selfies.
-* Running a Chat Break on a conversation.
+* Running a Chat Break on a conversation, with optional cascaded memory wipe.
+* Getting suggested user messages for individual or group chats.
 * Creating Journal Entries.
 * Creating and Updating Group Chats with multiple Kins, including turn-taking, memory settings, and group messaging.
 
@@ -166,6 +167,7 @@ Update a Kin's profile fields. Only provided fields are changed.
 - `custom_avatar_face_prompt` (optional) — Prompt for face detail enhancement
 - `avatar_is_anime` (optional) — Use anime style
 - `unset_custom_avatar_animation` (optional) — Unset any custom avatar animation
+- `current_scene` (optional) — A high-weight description of the current scene (location, attire, activity, time, etc.). Max 160 characters
 
 ### `request_selfie`
 
@@ -260,6 +262,7 @@ Clear the current conversation and start fresh.
 **Parameters:**
 - `ai_id` (required) — The ID of the target Kin
 - `greeting` (optional) — Custom greeting for the AI to open with
+- `wipe_cascaded` (optional) — Whether to also clear cascaded memory along with short-term memory (default: false)
 
 ### `check_subscription`
 
@@ -273,6 +276,22 @@ Create a journal entry for a Kin — a recallable piece of contextual lore (20�
 - `ai_id` (required) — The ID of the target Kin
 - `entry` (required) — Journal entry text (20–500 characters)
 - `keyphrases` (required) — Array of key phrases (each at least 3 characters) that trigger recall of this entry
+
+### `suggest_user_message`
+
+Get a suggested message for the user to send to a Kindroid AI. Useful for generating conversation starters or continuing a message.
+
+**Parameters:**
+- `ai_id` (required) — The ID of the Kindroid AI to get a suggestion for
+- `existing_message` (optional) — The start of a message the suggestion can continue from
+
+### `suggest_user_group_message`
+
+Get a suggested message for the user to send in a group chat. Useful for generating conversation starters or continuing a message in group conversations.
+
+**Parameters:**
+- `group_id` (required) — The ID of the group chat to get a suggestion for
+- `existing_message` (optional) — The start of a message the suggestion can continue from
 
 ## Environment Variables
 

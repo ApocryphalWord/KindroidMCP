@@ -14,6 +14,12 @@ const shape = {
     .describe(
       "Optional custom greeting for the AI to use when starting the new conversation.",
     ),
+  wipe_cascaded: z
+    .boolean()
+    .optional()
+    .describe(
+      "Whether to also clear cascaded memory along with short-term memory. Defaults to false.",
+    ),
 } as const;
 
 type Params = z.infer<z.ZodObject<typeof shape>>;
@@ -31,13 +37,14 @@ export function register(
       await client.chatBreak({
         ai_id: params.ai_id,
         greeting: params.greeting,
+        wipe_cascaded: params.wipe_cascaded,
       });
 
       return {
         content: [
           {
             type: "text" as const,
-            text: `Chat break successful. A new conversation has been started${params.greeting ? ` with greeting: "${params.greeting}"` : ""}.`,
+            text: `Chat break successful. A new conversation has been started${params.greeting ? ` with greeting: "${params.greeting}"` : ""}${params.wipe_cascaded ? " (cascaded memory also cleared)" : ""}.`,
           },
         ],
       };

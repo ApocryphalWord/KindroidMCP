@@ -127,6 +127,13 @@ const shape = {
     .describe(
       "Whether auto-generated selfies are shown in the chat.",
     ),
+  current_scene: z
+    .string()
+    .max(160)
+    .optional()
+    .describe(
+      "A high-weight description of the current scene (location, attire, activity, time, etc.). Max 160 characters.",
+    ),
 } as const;
 
 type Params = z.infer<z.ZodObject<typeof shape>>;
@@ -166,6 +173,7 @@ export function register(
         proactive_action_directive: params.proactive_action_directive,
         time_awareness: params.time_awareness,
         show_auto_selfies_in_chat: params.show_auto_selfies_in_chat,
+        current_scene: params.current_scene,
       });
 
       const updated = [
@@ -197,6 +205,7 @@ export function register(
         params.time_awareness !== undefined && "time awareness",
         params.show_auto_selfies_in_chat !== undefined &&
           "show auto selfies in chat",
+        params.current_scene !== undefined && "current scene",
       ].filter(Boolean);
 
       return {

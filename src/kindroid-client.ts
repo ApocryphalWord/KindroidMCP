@@ -99,6 +99,7 @@ export interface UpdateKinOptions {
   proactive_action_directive?: string;
   time_awareness?: boolean;
   show_auto_selfies_in_chat?: boolean;
+  current_scene?: string;
 }
 
 export interface SelfieRequestOptions {
@@ -122,6 +123,17 @@ export interface GroupSelfieRequestOptions {
 export interface ChatBreakOptions {
   ai_id: string;
   greeting?: string;
+  wipe_cascaded?: boolean;
+}
+
+export interface SuggestUserMessageOptions {
+  ai_id: string;
+  existing_message?: string;
+}
+
+export interface SuggestUserGroupMessageOptions {
+  group_id: string;
+  existing_message?: string;
 }
 
 export interface CreateJournalEntryOptions {
@@ -451,6 +463,8 @@ export class KindroidClient {
       body.time_awareness = options.time_awareness;
     if (options.show_auto_selfies_in_chat !== undefined)
       body.show_auto_selfies_in_chat = options.show_auto_selfies_in_chat;
+    if (options.current_scene !== undefined)
+      body.current_scene = options.current_scene;
 
     return this.requestWithRetry("/update-info", body, "void");
   }
@@ -458,6 +472,7 @@ export class KindroidClient {
   async chatBreak(options: ChatBreakOptions): Promise<void> {
     const body: Record<string, unknown> = {
       ai_id: options.ai_id,
+      wipe_cascaded: options.wipe_cascaded ?? false,
     };
     if (options.greeting) body.greeting = options.greeting;
 
@@ -625,6 +640,36 @@ export class KindroidClient {
         group_id: options.group_id,
         stream: false,
         request_id: requestId,
+      },
+      "text",
+      SEND_MESSAGE_TIMEOUT_MS,
+    );
+  }
+
+  async suggestUserMessage(
+    options: SuggestUserMessageOptions,
+  ): Promise<string> {
+    return this.requestWithRetry(
+      "/suggest-user-message",
+      {
+        ai_id: options.ai_id,
+        existing_message: options.existing_message ?? "",
+        stream: false,
+      },
+      "text",
+      SEND_MESSAGE_TIMEOUT_MS,
+    );
+  }
+
+  async suggestUserGroupMessage(
+    options: SuggestUserGroupMessageOptions,
+  ): Promise<string> {
+    return this.requestWithRetry(
+      "/suggest-user-group-message",
+      {
+        group_id: options.group_id,
+        existing_message: options.existing_message ?? "",
+        stream: false,
       },
       "text",
       SEND_MESSAGE_TIMEOUT_MS,
