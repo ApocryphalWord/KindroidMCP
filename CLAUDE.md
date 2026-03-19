@@ -21,7 +21,7 @@ src/
   index.ts            # Server entry point, stdio/HTTP transport setup
   kindroid-client.ts  # Kindroid API client wrapper (api.kindroid.ai/v1)
   oauth.ts            # OAuth 2.1 + PKCE implementation for remote mode
-  tools/              # MCP tool definitions (15 tools, one per file, Zod schemas)
+  tools/              # MCP tool definitions (16 tools, one per file, Zod schemas)
     index.ts          # Tool registration entry point
     tool-utils.ts     # Shared error-handling wrapper for tool handlers
 manifest.json         # MCP manifest for mcpb packaging
@@ -56,6 +56,7 @@ Output compiles to `dist/`. Docker + Railway deployment supported via `Dockerfil
 13. `groupchat_ai_response` — Request a specific Kin to respond in a group chat
 14. `suggest_user_message` — Get a suggested message for the user to send to a Kin
 15. `suggest_user_group_message` — Get a suggested message for the user to send in a group chat
+16. `update_user_profile` — Update user profile fields (name, gender, backstory, avatar) or set the active persona
 
 ## Adding or Changing Endpoints
 

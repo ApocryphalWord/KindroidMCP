@@ -25,6 +25,7 @@ This Kindroid MCP server provides AI assistant tools (such as Claude) the abilit
 * Getting suggested user messages for individual or group chats.
 * Creating Journal Entries.
 * Creating and Updating Group Chats with multiple Kins, including turn-taking, memory settings, and group messaging.
+* Updating user profile fields (name, gender, backstory, avatar) and setting the active persona.
 
 The power of the above is being able to do so without using the UI, and with the right setup (storing or looking up the Kindroid's AI ID from another source), run these operations in bulk. If the user has stored a collection of their Kindroid's IDs and names (in a Notion Database or somewhere else Claude can access), running any of the above is as easy as asking claude to "Turn off Time Awareness for Kin1, Kin2, and Kin3" or "Run this selfie prompt on Kin1, Kin2, and Kin3."
 
@@ -35,6 +36,47 @@ These capabilities can be easily leveraged via Claude Skills. Several skills mak
 - **The API is write-only.** There are no endpoints to read back Kin profiles, conversation history, or other account data. Once you create or update a Kin, there is no way to read its current state back through the API. Consider pairing this MCP with [Notion](https://www.notion.so/) or another tool to keep a local record of Kin configurations you push to Kindroid.
 - **No avatar image upload.** The API does not support uploading avatar images directly. Kins created via the API will not have an avatar picture. Set one manually in the Kindroid app before requesting selfies — selfie generation will fail for Kins without an avatar.
 - **Selfies are fire-and-forget.** Selfie and group selfie requests are queued asynchronously. The generated images are delivered in the Kindroid app — they are not returned through the API or the MCP.
+
+## Working with User Personas
+
+User personas in Kindroid let you present different identities to your Kins — each with its own name, gender, backstory, and avatar. The `update_user_profile` tool lets you manage these through the API, but there are some rough edges to be aware of.
+
+### How personas work on the backend
+
+The author (Apocryphus), believes through observation, that your Kindroid account has a single "active" persona state on the backend, consisting of two parts:
+
+1. **Active persona ID** — which persona is selected
+2. **User profile fields** — the actual name, gender, backstory, and avatar URL
+
+When you switch personas in the Kindroid UI, the app makes two separate API calls: one to set the `active_persona_id`, and another to set the user profile fields (`user_name`, `user_gender`, `user_backstory`, `user_custom_avatar`). The "tied persona" concept — where selecting a persona automatically loads its profile data — is a frontend convenience, not a backend feature.
+
+This means that to fully switch personas through the API, you need to make both updates yourself: set the active persona ID **and** set all the user profile fields to match.
+
+### What's not available
+
+- **No way to read personas.** Like most Kindroid data, there is no API endpoint to list your personas or read their details. You cannot retrieve persona IDs, names, or other fields through the API.
+- **Persona IDs are not shown in the UI.** The Kindroid app doesn't display persona IDs anywhere visible, so you'll need to extract them manually (see below).
+
+### How to find your persona IDs
+
+1. Open [Kindroid](https://kindroid.ai/) in Chrome
+2. Open Chrome DevTools (`F12` or `Ctrl+Shift+I`)
+3. Go to the **Network** tab
+4. In the Kindroid app, switch to the persona you want the ID for
+5. In the Network tab, look for a request to `update-info`
+6. Click the request and check the **Payload** tab — you'll see `active_persona_id` with the persona's ID
+
+### Recommended workflow
+
+Since the API can't read persona data, you'll want to store your persona details externally (e.g., in a Notion database or local file) so you can reference them when switching. For each persona, record:
+
+- **Persona ID** (extracted via DevTools)
+- **Name** (`user_name`)
+- **Gender** (`user_gender`)
+- **Backstory** (`user_backstory`)
+- **Avatar URL** (`user_custom_avatar`)
+
+Then to switch personas, call `update_user_profile` with both the `active_persona_id` and all the profile fields for that persona.
 
 ## Local Setup (Claude Desktop)
 
@@ -292,6 +334,19 @@ Get a suggested message for the user to send in a group chat. Useful for generat
 **Parameters:**
 - `group_id` (required) — The ID of the group chat to get a suggestion for
 - `existing_message` (optional) — The start of a message the suggestion can continue from
+
+### `update_user_profile`
+
+Update the authenticated user's profile fields or set the active persona. Only provided fields are changed. See [Working with User Personas](#working-with-user-personas) for important context on how personas work.
+
+> **Note:** This tool uses the same underlying `/update-info` endpoint as `update_kin`. The Kindroid API uses a single endpoint for both kin profile updates (when `ai_id` is provided) and user profile/persona updates. They are split into separate MCP tools for clarity.
+
+**Parameters:**
+- `active_persona_id` (optional) — The ID of the user persona to set as active
+- `user_name` (optional) — User profile display name
+- `user_gender` (optional) — User profile gender
+- `user_backstory` (optional) — User profile backstory/description
+- `user_custom_avatar` (optional) — URL for a custom user profile avatar image
 
 ## Environment Variables
 

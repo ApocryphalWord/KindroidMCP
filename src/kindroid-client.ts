@@ -189,6 +189,14 @@ export interface GroupChatAiResponseOptions {
   request_id?: string;
 }
 
+export interface UpdateUserProfileOptions {
+  active_persona_id?: string;
+  user_name?: string;
+  user_gender?: string;
+  user_backstory?: string;
+  user_custom_avatar?: string;
+}
+
 export interface SubscriptionInfo {
   uid: string;
   status: string;
@@ -370,6 +378,24 @@ export class KindroidClient {
   }
 
   // --- Public API methods ---
+
+  async updateUserProfile(
+    options: UpdateUserProfileOptions,
+  ): Promise<void> {
+    const body: Record<string, unknown> = {};
+
+    if (options.active_persona_id !== undefined)
+      body.active_persona_id = options.active_persona_id;
+    if (options.user_name !== undefined) body.user_name = options.user_name;
+    if (options.user_gender !== undefined)
+      body.user_gender = options.user_gender;
+    if (options.user_backstory !== undefined)
+      body.user_backstory = options.user_backstory;
+    if (options.user_custom_avatar !== undefined)
+      body.user_custom_avatar = options.user_custom_avatar;
+
+    return this.requestWithRetry("/update-info", body, "void");
+  }
 
   async sendMessage(options: SendMessageOptions): Promise<string> {
     const body: SendMessageBody = {
