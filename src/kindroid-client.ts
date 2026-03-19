@@ -189,12 +189,21 @@ export interface GroupChatAiResponseOptions {
   request_id?: string;
 }
 
+export interface UserCustomAvatar {
+  custom_avatar_url: string;
+  custom_avatar_description?: string;
+  custom_avatar_fidelity?: number;
+  custom_avatar_face_prompt?: string;
+  custom_avatar_face_detail?: number;
+  avatar_is_anime?: boolean;
+}
+
 export interface UpdateUserProfileOptions {
   active_persona_id?: string;
   user_name?: string;
   user_gender?: string;
   user_backstory?: string;
-  user_custom_avatar?: string;
+  user_custom_avatar?: UserCustomAvatar;
 }
 
 export interface SubscriptionInfo {

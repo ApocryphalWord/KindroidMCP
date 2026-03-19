@@ -23,10 +23,42 @@ const shape = {
     .optional()
     .describe("User profile backstory/description."),
   user_custom_avatar: z
-    .string()
-    .url()
+    .object({
+      custom_avatar_url: z
+        .string()
+        .url()
+        .describe("URL for the custom avatar image."),
+      custom_avatar_description: z
+        .string()
+        .optional()
+        .describe("Text description of the custom avatar for generation."),
+      custom_avatar_fidelity: z
+        .number()
+        .min(0)
+        .max(1)
+        .optional()
+        .describe("Avatar fidelity setting (0-1)."),
+      custom_avatar_face_prompt: z
+        .string()
+        .optional()
+        .describe(
+          "Prompt used in an AIDetailer workflow to enhance the face detail of the avatar.",
+        ),
+      custom_avatar_face_detail: z
+        .number()
+        .min(0)
+        .max(1)
+        .optional()
+        .describe("Face detail level (0-1)."),
+      avatar_is_anime: z
+        .boolean()
+        .optional()
+        .describe("Whether the avatar should use anime style. Defaults to false."),
+    })
     .optional()
-    .describe("URL for a custom user profile avatar image."),
+    .describe(
+      "Custom avatar settings for the user profile. Requires at minimum a custom_avatar_url.",
+    ),
 } as const;
 
 type Params = z.infer<z.ZodObject<typeof shape>>;

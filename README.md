@@ -74,7 +74,7 @@ Since the API can't read persona data, you'll want to store your persona details
 - **Name** (`user_name`)
 - **Gender** (`user_gender`)
 - **Backstory** (`user_backstory`)
-- **Avatar URL** (`user_custom_avatar`)
+- **Avatar settings** (`user_custom_avatar` — an object with `custom_avatar_url`, `custom_avatar_description`, etc.)
 
 Then to switch personas, call `update_user_profile` with both the `active_persona_id` and all the profile fields for that persona.
 
@@ -346,7 +346,13 @@ Update the authenticated user's profile fields or set the active persona. Only p
 - `user_name` (optional) — User profile display name
 - `user_gender` (optional) — User profile gender
 - `user_backstory` (optional) — User profile backstory/description
-- `user_custom_avatar` (optional) — URL for a custom user profile avatar image
+- `user_custom_avatar` (optional) — Custom avatar settings object:
+  - `custom_avatar_url` (required) — URL for the custom avatar image
+  - `custom_avatar_description` (optional) — Text description for avatar generation
+  - `custom_avatar_fidelity` (optional) — Avatar fidelity (0–1)
+  - `custom_avatar_face_prompt` (optional) — Prompt for face detail enhancement
+  - `custom_avatar_face_detail` (optional) — Face detail level (0–1)
+  - `avatar_is_anime` (optional) — Use anime style (default: false)
 
 ## Environment Variables
 
