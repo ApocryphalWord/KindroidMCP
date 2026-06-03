@@ -668,12 +668,17 @@ export class KindroidClient {
       options.request_id ??
       `group-ai-${options.group_id}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 
+    // Kindroid's groupchats-ai-response endpoint only generates and returns
+    // the reply when stream:true. With stream:false it responds 200 with an
+    // empty body (the reply is pushed to the app but never sent to the API
+    // caller). The body is streamed as plain text (with a leading space),
+    // which response.text()/parseTextResponse drains and trims correctly.
     return this.requestWithRetry(
       "/groupchats-ai-response",
       {
         ai_id: options.ai_id,
         group_id: options.group_id,
-        stream: false,
+        stream: true,
         request_id: requestId,
       },
       "text",
