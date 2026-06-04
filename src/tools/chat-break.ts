@@ -10,9 +10,9 @@ const shape = {
     .describe("The ID of the Kindroid AI."),
   greeting: z
     .string()
-    .optional()
+    .min(1)
     .describe(
-      "Optional custom greeting for the AI to use when starting the new conversation.",
+      "Greeting the AI uses to open the new conversation. Becomes the first message and is required by the Kindroid API.",
     ),
   wipe_cascaded: z
     .boolean()
@@ -31,7 +31,7 @@ export function register(
   server.tool(
     "chat_break",
     "Start a new conversation with a Kindroid AI, clearing the previous chat context. " +
-      "Optionally provide a custom greeting for the AI to use when starting the new conversation.",
+      "A greeting is required and becomes the first message of the new conversation.",
     shape,
     wrapToolHandler<Params>(async (params) => {
       await client.chatBreak({
@@ -44,7 +44,7 @@ export function register(
         content: [
           {
             type: "text" as const,
-            text: `Chat break successful. A new conversation has been started${params.greeting ? ` with greeting: "${params.greeting}"` : ""}${params.wipe_cascaded ? " (cascaded memory also cleared)" : ""}.`,
+            text: `Chat break successful. A new conversation has been started with greeting: "${params.greeting}"${params.wipe_cascaded ? " (cascaded memory also cleared)" : ""}.`,
           },
         ],
       };

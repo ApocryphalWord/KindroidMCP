@@ -307,7 +307,7 @@ Clear the current conversation and start fresh.
 
 **Parameters:**
 - `ai_id` (required) — The ID of the target Kin
-- `greeting` (optional) — Custom greeting for the AI to open with
+- `greeting` (required) — Greeting the AI opens the new conversation with; becomes the first message
 - `wipe_cascaded` (optional) — Whether to also clear cascaded memory along with short-term memory (default: false)
 
 ### `groupchat_chat_break`

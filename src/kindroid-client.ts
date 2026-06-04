@@ -122,7 +122,7 @@ export interface GroupSelfieRequestOptions {
 
 export interface ChatBreakOptions {
   ai_id: string;
-  greeting?: string;
+  greeting: string;
   wipe_cascaded?: boolean;
 }
 
@@ -644,9 +644,9 @@ export class KindroidClient {
   async chatBreak(options: ChatBreakOptions): Promise<void> {
     const body: Record<string, unknown> = {
       ai_id: options.ai_id,
+      greeting: options.greeting,
       wipe_cascaded: options.wipe_cascaded ?? false,
     };
-    if (options.greeting) body.greeting = options.greeting;
 
     await this.requestWithRetry("/chat-break", body, "void");
   }
