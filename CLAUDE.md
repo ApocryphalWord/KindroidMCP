@@ -21,7 +21,7 @@ src/
   index.ts            # Server entry point, stdio/HTTP transport setup
   kindroid-client.ts  # Kindroid API client wrapper (api.kindroid.ai/v1)
   oauth.ts            # OAuth 2.1 + PKCE implementation for remote mode
-  tools/              # MCP tool definitions (16 tools, one per file, Zod schemas)
+  tools/              # MCP tool definitions (19 tools, one per file, Zod schemas)
     index.ts          # Tool registration entry point
     tool-utils.ts     # Shared error-handling wrapper for tool handlers
 manifest.json         # MCP manifest for mcpb packaging
@@ -37,7 +37,7 @@ Output compiles to `dist/`. Docker + Railway deployment supported via `Dockerfil
 - **Environment variables**: `KINDROID_API_KEY` (required), `OAUTH_CLIENT_ID` + `OAUTH_CLIENT_SECRET` (required for remote), `PORT` (default 3000), `TRANSPORT` (set to "stdio" for local mode). See `.env.example`.
 - **OAuth tokens are in-memory only** — they reset on server restart.
 - Tools are registered in `src/tools/index.ts` using Zod for parameter validation.
-- API calls go through `src/kindroid-client.ts` with Bearer token auth.
+- API calls go through `src/kindroid-client.ts` with Bearer token auth. Most endpoints are POST; the client also supports GET via `requestGetWithRetry` (used by `get_chat_messages`).
 
 ## MCP Tools
 
@@ -57,6 +57,9 @@ Output compiles to `dist/`. Docker + Railway deployment supported via `Dockerfil
 14. `suggest_user_message` — Get a suggested message for the user to send to a Kin
 15. `suggest_user_group_message` — Get a suggested message for the user to send in a group chat
 16. `update_user_profile` — Update user profile fields (name, gender, backstory, avatar) or set the active persona
+17. `get_chat_messages` — Retrieve chat history for a Kin or group chat (oldest first, cursor pagination)
+18. `rewind_messages` — Remove the most recent messages from a Kin's solo chat or a group chat (an undo)
+19. `groupchat_chat_break` — Start a new conversation in a group chat, resetting short-term memory (greeting required)
 
 ## Adding or Changing Endpoints
 

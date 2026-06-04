@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "kindroid-mcp-server",
   "display_name": "Kindroid MCP Server",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Connect Claude to the Kindroid AI platform to interact with your Kindroid AI companions (Kins).",
   "author": {
     "name": "Apocryphus"
@@ -90,6 +90,18 @@
     {
       "name": "update_user_profile",
       "description": "Update the authenticated user's profile fields or set the active persona."
+    },
+    {
+      "name": "get_chat_messages",
+      "description": "Retrieve chat history for a Kin or group chat, oldest first, with cursor pagination."
+    },
+    {
+      "name": "rewind_messages",
+      "description": "Remove the most recent messages from a Kin's solo chat or a group chat (an undo)."
+    },
+    {
+      "name": "groupchat_chat_break",
+      "description": "Start a new conversation in a group chat, resetting short-term memory with a required greeting."
     }
   ],
   "keywords": ["kindroid", "ai", "companion", "chat", "mcp"],

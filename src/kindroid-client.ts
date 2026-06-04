@@ -165,11 +165,13 @@ export interface UpdateGroupChatOptions {
   disable_ltm_recall?: boolean;
   disable_ltm_consolidate?: boolean;
   user_persona_id?: string;
+  current_scene?: string;
 }
 
 export interface SendGroupChatMessageOptions {
   group_id: string;
-  message: string;
+  message?: string;
+  audio_url?: string;
   image_urls?: string[];
   image_description?: string;
   video_url?: string;
@@ -204,6 +206,51 @@ export interface UpdateUserProfileOptions {
   user_gender?: string;
   user_backstory?: string;
   user_custom_avatar?: UserCustomAvatar;
+}
+
+export interface GetChatMessagesOptions {
+  ai_id?: string;
+  group_id?: string;
+  limit?: number;
+  start_after_timestamp?: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  sender: string;
+  sender_type?: string;
+  display_name?: string;
+  timestamp: number;
+  message: string;
+  image_urls?: string[];
+  image_description?: string;
+  video_description?: string;
+  internet_response?: string;
+  link_url?: string;
+  link_description?: string;
+}
+
+export interface ChatMessagesPagination {
+  hasMore: boolean;
+  lastTimestamp: number | null;
+  limit: number;
+}
+
+export interface GetChatMessagesResult {
+  messages: ChatMessage[];
+  pagination: ChatMessagesPagination;
+}
+
+export interface RewindMessagesOptions {
+  ai_id?: string;
+  group_id?: string;
+  count: number;
+}
+
+export interface GroupChatChatBreakOptions {
+  group_id: string;
+  greeting: string;
+  wipe_cascaded?: boolean;
 }
 
 export interface SubscriptionInfo {
@@ -270,6 +317,37 @@ const subscriptionInfoSchema = z.object({
   isSubscribedAddon2: z.boolean(),
   subscriptionPlatformAddon2: z.string().nullable(),
   gracePeriodAddon2: z.number().nullable(),
+});
+
+// Lenient: fields absent on a given message are omitted, and the API may add
+// fields over time, so every optional field is nullable/optional and the
+// object passes through unknown keys.
+const chatMessageSchema = z
+  .object({
+    id: z.string(),
+    sender: z.string(),
+    sender_type: z.string().nullish(),
+    display_name: z.string().nullish(),
+    timestamp: z.number(),
+    message: z.string(),
+    image_urls: z.array(z.string()).nullish(),
+    image_description: z.string().nullish(),
+    video_description: z.string().nullish(),
+    internet_response: z.string().nullish(),
+    link_url: z.string().nullish(),
+    link_description: z.string().nullish(),
+  })
+  .passthrough();
+
+const getChatMessagesSchema = z.object({
+  messages: z.array(chatMessageSchema),
+  pagination: z
+    .object({
+      hasMore: z.boolean(),
+      lastTimestamp: z.number().nullable(),
+      limit: z.number(),
+    })
+    .passthrough(),
 });
 
 // --- Client class ---
@@ -359,11 +437,23 @@ export class KindroidClient {
     format: ResponseFormat,
     timeoutMs?: number,
   ): Promise<T | string | void> {
+    return this.withRetry(() =>
+      this.request<T>(endpoint, body, format as "json", timeoutMs),
+    );
+  }
+
+  /**
+   * Runs a single-attempt request thunk with exponential-backoff retries.
+   * Retries retryable API errors (429/502/503/504) and network errors, but
+   * never timeouts (we've already waited long enough). Method-agnostic so it
+   * can wrap both POST (`request`) and GET (`requestGet`) attempts.
+   */
+  private async withRetry<R>(attemptFn: () => Promise<R>): Promise<R> {
     let lastError: Error | undefined;
 
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
-        return await this.request<T>(endpoint, body, format as "json", timeoutMs);
+        return await attemptFn();
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
 
@@ -384,6 +474,53 @@ export class KindroidClient {
     }
 
     throw lastError!;
+  }
+
+  /**
+   * Performs a GET request with query parameters. Unlike `request`, this sends
+   * no body and no Content-Type header (some gateways reject GET-with-body).
+   * Query values that are `undefined` or empty strings are omitted.
+   */
+  private async requestGet<T>(
+    endpoint: string,
+    query: Record<string, string | number | undefined>,
+    timeoutMs: number = DEFAULT_TIMEOUT_MS,
+  ): Promise<T> {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(query)) {
+      if (value === undefined || value === "") continue;
+      params.append(key, String(value));
+    }
+    const qs = params.toString();
+    const url = `${BASE_URL}${endpoint}${qs ? `?${qs}` : ""}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${this.apiKey}`,
+      },
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new KindroidApiError(
+        response.status,
+        `Kindroid API error (${response.status}): ${text || response.statusText}`,
+      );
+    }
+
+    return response.json() as Promise<T>;
+  }
+
+  private async requestGetWithRetry<T>(
+    endpoint: string,
+    query: Record<string, string | number | undefined>,
+    timeoutMs?: number,
+  ): Promise<T> {
+    return this.withRetry(() =>
+      this.requestGet<T>(endpoint, query, timeoutMs),
+    );
   }
 
   // --- Public API methods ---
@@ -616,6 +753,8 @@ export class KindroidClient {
       body.disable_ltm_consolidate = options.disable_ltm_consolidate;
     if (options.user_persona_id !== undefined)
       body.user_persona_id = options.user_persona_id;
+    if (options.current_scene !== undefined)
+      body.current_scene = options.current_scene;
 
     return this.requestWithRetry("/groupchats-update", body, "void");
   }
@@ -625,7 +764,8 @@ export class KindroidClient {
   ): Promise<string> {
     const body: Record<string, unknown> = {
       group_id: options.group_id,
-      message: options.message,
+      ...(options.message !== undefined && { message: options.message }),
+      ...(options.audio_url && { audio_url: options.audio_url }),
       ...(options.image_urls?.length && { image_urls: options.image_urls }),
       ...(options.image_description && {
         image_description: options.image_description,
@@ -714,5 +854,46 @@ export class KindroidClient {
       "text",
       SEND_MESSAGE_TIMEOUT_MS,
     );
+  }
+
+  async getChatMessages(
+    options: GetChatMessagesOptions,
+  ): Promise<GetChatMessagesResult> {
+    const data = await this.requestGetWithRetry<unknown>(
+      "/get-chat-messages",
+      {
+        ai_id: options.ai_id,
+        group_id: options.group_id,
+        limit: options.limit,
+        start_after_timestamp: options.start_after_timestamp,
+      },
+    );
+    const result = getChatMessagesSchema.safeParse(data);
+    if (!result.success) {
+      throw new Error(
+        `Unexpected get-chat-messages response format: ${result.error.message}`,
+      );
+    }
+    return result.data as GetChatMessagesResult;
+  }
+
+  async rewindMessages(options: RewindMessagesOptions): Promise<void> {
+    const body: Record<string, unknown> = { count: options.count };
+    if (options.ai_id !== undefined) body.ai_id = options.ai_id;
+    if (options.group_id !== undefined) body.group_id = options.group_id;
+
+    await this.requestWithRetry("/rewind-messages", body, "void");
+  }
+
+  async groupChatChatBreak(
+    options: GroupChatChatBreakOptions,
+  ): Promise<void> {
+    const body: Record<string, unknown> = {
+      group_id: options.group_id,
+      greeting: options.greeting,
+      wipe_cascaded: options.wipe_cascaded ?? false,
+    };
+
+    await this.requestWithRetry("/groupchats-chat-break", body, "void");
   }
 }

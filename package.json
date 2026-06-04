@@ -1,6 +1,6 @@
 {
   "name": "kindroid-mcp-server",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "MCP server for the Kindroid AI API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

@@ -18,13 +18,15 @@ This is an **unofficial, community-built project** by [Apocryphus](https://githu
 This Kindroid MCP server provides AI assistant tools (such as Claude) the ability to understand and access the Kindroid API for purposes of messaging and setting up Kindroids. Some such capabilities include:
 
 * Sending messages to kins.
+* Reading back chat history for a Kin or group chat, with cursor pagination.
+* Rewinding (undoing) the most recent messages in a solo or group conversation.
 * Creating and Updating kins, setting any values available in the UI.
   * Including setup fields like `show_auto_selfies_in_chat` and `time_awareness`
 * Requesting Selfies and Group Selfies.
-* Running a Chat Break on a conversation, with optional cascaded memory wipe.
+* Running a Chat Break on a solo or group conversation, with optional cascaded memory wipe.
 * Getting suggested user messages for individual or group chats.
 * Creating Journal Entries.
-* Creating and Updating Group Chats with multiple Kins, including turn-taking, memory settings, and group messaging.
+* Creating and Updating Group Chats with multiple Kins, including turn-taking, memory settings, current scene, and group messaging (text or voice).
 * Updating user profile fields (name, gender, backstory, avatar) and setting the active persona.
 
 The power of the above is being able to do so without using the UI, and with the right setup (storing or looking up the Kindroid's AI ID from another source), run these operations in bulk. If the user has stored a collection of their Kindroid's IDs and names (in a Notion Database or somewhere else Claude can access), running any of the above is as easy as asking claude to "Turn off Time Awareness for Kin1, Kin2, and Kin3" or "Run this selfie prompt on Kin1, Kin2, and Kin3."
@@ -33,7 +35,7 @@ These capabilities can be easily leveraged via Claude Skills. Several skills mak
 
 ## Limitations
 
-- **The API is write-only.** There are no endpoints to read back Kin profiles, conversation history, or other account data. Once you create or update a Kin, there is no way to read its current state back through the API. Consider pairing this MCP with [Notion](https://www.notion.so/) or another tool to keep a local record of Kin configurations you push to Kindroid.
+- **Profiles and account data are write-only.** Aside from conversation history (readable via `get_chat_messages`), there are no endpoints to read back Kin profiles, personas, or other account data. Once you create or update a Kin, there is no way to read its current configuration back through the API. Consider pairing this MCP with [Notion](https://www.notion.so/) or another tool to keep a local record of Kin configurations you push to Kindroid.
 - **No avatar image upload.** The API does not support uploading avatar images directly. Kins created via the API will not have an avatar picture. Set one manually in the Kindroid app before requesting selfies — selfie generation will fail for Kins without an avatar.
 - **Selfies are fire-and-forget.** Selfie and group selfie requests are queued asynchronously. The generated images are delivered in the Kindroid app — they are not returned through the API or the MCP.
 
@@ -265,6 +267,7 @@ Update a group chat's settings. Only provided fields are changed.
 - `disable_ltm_recall` (optional) — Toggle long-term memory recall
 - `disable_ltm_consolidate` (optional) — Toggle long-term memory creation
 - `user_persona_id` (optional) — User persona ID to use
+- `current_scene` (optional) — Updated current scene/situation for the group chat
 
 ### `send_groupchat_message`
 
@@ -272,7 +275,8 @@ Send a user message to a group chat. Does not trigger AI responses — use `grou
 
 **Parameters:**
 - `group_id` (required) — The ID of the group chat
-- `message` (required) — The message to send
+- `message` (optional) — The text message to send. Provide exactly one of `message` or `audio_url`
+- `audio_url` (optional) — URL of an audio file to send as a voice message. Provide exactly one of `message` or `audio_url`
 - `image_urls` (optional) — Array of image URLs to attach
 - `image_description` (optional) — Description of attached images
 - `video_url` (optional) — Video URL to attach
@@ -305,6 +309,34 @@ Clear the current conversation and start fresh.
 - `ai_id` (required) — The ID of the target Kin
 - `greeting` (optional) — Custom greeting for the AI to open with
 - `wipe_cascaded` (optional) — Whether to also clear cascaded memory along with short-term memory (default: false)
+
+### `groupchat_chat_break`
+
+Start a new conversation in a group chat, resetting short-term memory. A greeting is required and becomes the first message of the new conversation.
+
+**Parameters:**
+- `group_id` (required) — The ID of the group chat to reset
+- `greeting` (required) — The greeting that becomes the first message of the new conversation
+- `wipe_cascaded` (optional) — Whether to also clear the group's cascaded long-term memory (default: false)
+
+### `get_chat_messages`
+
+Retrieve chat history for a Kin (solo chat) or a group chat, oldest first, with cursor pagination. Returns a `messages` array and a `pagination` object. To page, repeat the call with `start_after_timestamp` set to the previous response's `pagination.lastTimestamp` until `pagination.hasMore` is `false`.
+
+**Parameters:**
+- `ai_id` (optional) — The ID of the Kin whose solo chat history to fetch. Provide exactly one of `ai_id` or `group_id`
+- `group_id` (optional) — The ID of the group chat whose history to fetch. Provide exactly one of `ai_id` or `group_id`
+- `limit` (optional) — Page size, 1–100 (default: 50)
+- `start_after_timestamp` (optional) — Pagination cursor; pass the previous page's `pagination.lastTimestamp`
+
+### `rewind_messages`
+
+Remove the most recent messages from a Kin's solo chat or a group chat (an "undo"). Useful for discarding the last exchange before continuing.
+
+**Parameters:**
+- `ai_id` (optional) — The ID of the Kin to rewind. Provide exactly one of `ai_id` or `group_id`
+- `group_id` (optional) — The ID of the group chat to rewind. Provide exactly one of `ai_id` or `group_id`
+- `count` (required) — Number of most-recent messages to remove. For a solo chat (`ai_id`) this **must be even** (it removes whole user/AI exchanges); group chats accept any count
 
 ### `check_subscription`
 
