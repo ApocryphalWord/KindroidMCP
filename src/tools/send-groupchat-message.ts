@@ -72,7 +72,7 @@ export function register(
 
       await client.sendGroupChatMessage({
         group_id: params.group_id,
-        message: params.message,
+        message: hasMessage ? params.message : undefined,
         audio_url: params.audio_url,
         image_urls: params.image_urls,
         image_description: params.image_description,

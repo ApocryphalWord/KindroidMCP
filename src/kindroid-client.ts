@@ -221,7 +221,7 @@ export interface ChatMessage {
   sender_type?: string;
   display_name?: string;
   timestamp: number;
-  message: string;
+  message?: string;
   image_urls?: string[];
   image_description?: string;
   video_description?: string;
@@ -329,7 +329,7 @@ const chatMessageSchema = z
     sender_type: z.string().nullish(),
     display_name: z.string().nullish(),
     timestamp: z.number(),
-    message: z.string(),
+    message: z.string().nullish(),
     image_urls: z.array(z.string()).nullish(),
     image_description: z.string().nullish(),
     video_description: z.string().nullish(),
@@ -764,7 +764,7 @@ export class KindroidClient {
   ): Promise<string> {
     const body: Record<string, unknown> = {
       group_id: options.group_id,
-      ...(options.message !== undefined && { message: options.message }),
+      ...(options.message?.trim() && { message: options.message }),
       ...(options.audio_url && { audio_url: options.audio_url }),
       ...(options.image_urls?.length && { image_urls: options.image_urls }),
       ...(options.image_description && {
