@@ -62,6 +62,12 @@ const shape = {
     .string()
     .optional()
     .describe("User persona ID to use in this group chat."),
+  current_scene: z
+    .string()
+    .optional()
+    .describe(
+      "Updated current scene/situation for the group chat (location, activity, etc.).",
+    ),
 } as const;
 
 type Params = z.infer<z.ZodObject<typeof shape>>;
@@ -87,6 +93,7 @@ export function register(
         disable_ltm_recall: params.disable_ltm_recall,
         disable_ltm_consolidate: params.disable_ltm_consolidate,
         user_persona_id: params.user_persona_id,
+        current_scene: params.current_scene,
       });
 
       return {

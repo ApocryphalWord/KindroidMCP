@@ -4,21 +4,21 @@ import { KindroidClient } from "../kindroid-client.js";
 import { wrapToolHandler } from "./tool-utils.js";
 
 const shape = {
-  ai_id: z
+  group_id: z
     .string()
     .min(1)
-    .describe("The ID of the Kindroid AI."),
+    .describe("The ID of the group chat to reset."),
   greeting: z
     .string()
     .min(1)
     .describe(
-      "Greeting the AI uses to open the new conversation. Becomes the first message and is required by the Kindroid API.",
+      "Mandatory greeting that becomes the first message of the new group conversation.",
     ),
   wipe_cascaded: z
     .boolean()
     .optional()
     .describe(
-      "Whether to also clear cascaded memory along with short-term memory. Defaults to false.",
+      "Whether to also clear the group's cascaded long-term memory along with short-term memory. Defaults to false.",
     ),
 } as const;
 
@@ -29,13 +29,13 @@ export function register(
   client: KindroidClient,
 ): void {
   server.tool(
-    "chat_break",
-    "Start a new conversation with a Kindroid AI, clearing the previous chat context. " +
+    "groupchat_chat_break",
+    "Start a new conversation in a group chat, resetting short-term memory. " +
       "A greeting is required and becomes the first message of the new conversation.",
     shape,
     wrapToolHandler<Params>(async (params) => {
-      await client.chatBreak({
-        ai_id: params.ai_id,
+      await client.groupChatChatBreak({
+        group_id: params.group_id,
         greeting: params.greeting,
         wipe_cascaded: params.wipe_cascaded,
       });
@@ -44,7 +44,7 @@ export function register(
         content: [
           {
             type: "text" as const,
-            text: `Chat break successful. A new conversation has been started with greeting: "${params.greeting}"${params.wipe_cascaded ? " (cascaded memory also cleared)" : ""}.`,
+            text: `Group chat break successful. A new conversation has been started for group "${params.group_id}" with greeting: "${params.greeting}"${params.wipe_cascaded ? " (cascaded memory also cleared)" : ""}.`,
           },
         ],
       };

@@ -10,7 +10,17 @@ const shape = {
     .describe("The ID of the group chat to send a message to."),
   message: z
     .string()
-    .describe("The message to send to the group chat."),
+    .optional()
+    .describe(
+      "The text message to send to the group chat. Provide exactly one of message or audio_url.",
+    ),
+  audio_url: z
+    .string()
+    .url()
+    .optional()
+    .describe(
+      "URL of an audio file to send as a voice message. Provide exactly one of message or audio_url.",
+    ),
   image_urls: z
     .array(z.string().url())
     .optional()
@@ -52,9 +62,18 @@ export function register(
       "Optionally attach images, video, or links.",
     shape,
     wrapToolHandler<Params>(async (params) => {
+      const hasMessage = !!params.message?.trim();
+      const hasAudio = !!params.audio_url;
+      if (hasMessage === hasAudio) {
+        throw new Error(
+          "Provide exactly one of message or audio_url.",
+        );
+      }
+
       await client.sendGroupChatMessage({
         group_id: params.group_id,
-        message: params.message,
+        message: hasMessage ? params.message : undefined,
+        audio_url: params.audio_url,
         image_urls: params.image_urls,
         image_description: params.image_description,
         video_url: params.video_url,
